@@ -12,11 +12,20 @@ class PlaybackService : MediaSessionService() {
     override fun onCreate() {
         super.onCreate()
         val player = ExoPlayer.Builder(this).build()
-        val mediaItem =
-            MediaItem.fromUri("https://assets.tcdww.cn/website/test/14%20Horsey%20(feat.%20Sarah%20Bonito).m4a")
         mediaSession = MediaSession.Builder(this, player).setId("moe.bilisound.player").build()
         player.clearMediaItems()
-        player.addMediaItem(mediaItem)
+        player.addMediaItem(
+            MediaItem.fromUri("http://10.0.2.2:3000/Music/Media.localized/Music/asmi/PAKU%20-%20Single/01%20PAKU.m4a")
+        )
+        player.addMediaItem(
+            MediaItem.fromUri("http://10.0.2.2:3000/Music/Media.localized/Music/Hoshimachi%20Suisei/SelfishDazzling%20_%20bye%20bye%20rainy%20-%20EP/02%20Bye%20Bye%20Rainy.m4a")
+        )
+        player.addMediaItem(
+            MediaItem.fromUri("http://10.0.2.2:3000/Music/Media.localized/Music/Denki%20Groove/A/09%20Shangri-La.m4a")
+        )
+        player.addMediaItem(
+            MediaItem.fromUri("http://10.0.2.2:3000/Music/Media.localized/Music/Natsume%20Itsuki/Trade-Off%20-%20Single/01%20Trade-Off.m4a")
+        )
         player.prepare()
     }
 
