@@ -1,0 +1,10 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "paths": {
+      "bilisound-player": ["../src/index"],
+      "bilisound-player/*": ["../src/*"]
+    }
+  }
+}
