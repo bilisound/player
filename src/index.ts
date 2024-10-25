@@ -1,26 +1,9 @@
-import { NativeModulesProxy, EventEmitter, Subscription } from 'expo-modules-core';
+import BilisoundPlayerModule from "./BilisoundPlayerModule";
 
-// Import the native module. On web, it will be resolved to BilisoundPlayer.web.ts
-// and on native platforms to BilisoundPlayer.ts
-import BilisoundPlayerModule from './BilisoundPlayerModule';
-import BilisoundPlayerView from './BilisoundPlayerView';
-import { ChangeEventPayload, BilisoundPlayerViewProps } from './BilisoundPlayer.types';
-
-// Get the native constant value.
-export const PI = BilisoundPlayerModule.PI;
-
-export function hello(): string {
-  return BilisoundPlayerModule.hello();
+export function playAudio() {
+  BilisoundPlayerModule.playAudio();
 }
 
-export async function setValueAsync(value: string) {
-  return await BilisoundPlayerModule.setValueAsync(value);
+export function togglePlayback() {
+  BilisoundPlayerModule.togglePlayback();
 }
-
-const emitter = new EventEmitter(BilisoundPlayerModule ?? NativeModulesProxy.BilisoundPlayer);
-
-export function addChangeListener(listener: (event: ChangeEventPayload) => void): Subscription {
-  return emitter.addListener<ChangeEventPayload>('onChange', listener);
-}
-
-export { BilisoundPlayerView, BilisoundPlayerViewProps, ChangeEventPayload };

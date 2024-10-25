@@ -1,46 +1,86 @@
 package moe.bilisound.player
 
+import android.content.Context
+import android.os.Handler
+import android.os.Looper
+import androidx.annotation.OptIn
+import androidx.media3.common.MediaItem
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.ExoPlayer
+import expo.modules.kotlin.Promise
+import expo.modules.kotlin.exception.Exceptions
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
 class BilisoundPlayerModule : Module() {
-  // Each module class must implement the definition function. The definition consists of components
-  // that describes the module's functionality and behavior.
-  // See https://docs.expo.dev/modules/module-api for more details about available components.
-  override fun definition() = ModuleDefinition {
-    // Sets the name of the module that JavaScript code will use to refer to the module. Takes a string as an argument.
-    // Can be inferred from module's class name, but it's recommended to set it explicitly for clarity.
-    // The module will be accessible from `requireNativeModule('BilisoundPlayer')` in JavaScript.
+  private var player: ExoPlayer? = null
+  private val mainHandler = Handler(Looper.getMainLooper())
+  private val context: Context
+    get() = appContext.reactContext ?: throw Exceptions.ReactContextLost()
+
+  @OptIn(UnstableApi::class) override fun definition() = ModuleDefinition {
     Name("BilisoundPlayer")
 
-    // Sets constant properties on the module. Can take a dictionary or a closure that returns a dictionary.
-    Constants(
-      "PI" to Math.PI
-    )
-
-    // Defines event names that the module can send to JavaScript.
-    Events("onChange")
-
-    // Defines a JavaScript synchronous function that runs the native code on the JavaScript thread.
-    Function("hello") {
-      "Hello world! 👋"
+    OnCreate {
+      mainHandler.post {
+        player = ExoPlayer.Builder(context)
+          .setLooper(Looper.getMainLooper())
+          .build()
+      }
     }
 
-    // Defines a JavaScript function that always returns a Promise and whose native code
-    // is by default dispatched on the different thread than the JavaScript runtime runs on.
-    AsyncFunction("setValueAsync") { value: String ->
-      // Send an event to JavaScript.
-      sendEvent("onChange", mapOf(
-        "value" to value
-      ))
+    OnDestroy {
+      mainHandler.post {
+        player?.release()
+        player = null
+      }
     }
 
-    // Enables the module to be used as a native view. Definition components that are accepted as part of
-    // the view definition: Prop, Events.
-    View(BilisoundPlayerView::class) {
-      // Defines a setter for the `name` prop.
-      Prop("name") { view: BilisoundPlayerView, prop: String ->
-        println(prop)
+    AsyncFunction("playAudio") { promise: Promise ->
+      mainHandler.post {
+        try {
+          val audioUrl = "https://assets.tcdww.cn/website/test/14%20Horsey%20(feat.%20Sarah%20Bonito).m4a"
+          val mediaItem = MediaItem.fromUri(audioUrl)
+
+          player?.apply {
+            clearMediaItems()
+            addMediaItem(mediaItem)
+            prepare()
+            play()
+            promise.resolve(null)
+          } ?: promise.reject("PLAYER_ERROR", "Player not initialized", null)
+        } catch (e: Exception) {
+          promise.reject("PLAYER_ERROR", "", e)
+        }
+      }
+    }
+
+    AsyncFunction("togglePlayback") { promise: Promise ->
+      mainHandler.post {
+        try {
+          val isPlaying = player?.let {
+            if (it.isPlaying) {
+              it.pause()
+            } else {
+              it.play()
+            }
+            it.isPlaying
+          } ?: false
+          promise.resolve(isPlaying)
+        } catch (e: Exception) {
+          promise.reject("PLAYER_ERROR", "", e)
+        }
+      }
+    }
+
+    AsyncFunction("stop") { promise: Promise ->
+      mainHandler.post {
+        try {
+          player?.stop()
+          promise.resolve(null)
+        } catch (e: Exception) {
+          promise.reject("PLAYER_ERROR", "", e)
+        }
       }
     }
   }
