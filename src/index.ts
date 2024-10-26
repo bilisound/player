@@ -25,3 +25,15 @@ export function addTrack(trackData: TrackData): Promise<void> {
   };
   return BilisoundPlayerModule.addTrack(JSON.stringify(builtTrackData));
 }
+
+export async function getTracks() {
+  const raw = await (BilisoundPlayerModule.getTracks() as Promise<string>);
+  const rawData: TrackDataInternal[] = JSON.parse(raw);
+  return rawData.map((e) => {
+    return {
+      ...e,
+      httpHeaders: e.httpHeaders ? JSON.parse(e.httpHeaders) : undefined,
+      extendedData: e.extendedData ? JSON.parse(e.extendedData) : undefined,
+    } as TrackData;
+  });
+}

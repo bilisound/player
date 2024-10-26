@@ -14,6 +14,8 @@ import expo.modules.kotlin.Promise
 import expo.modules.kotlin.exception.Exceptions
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
+import org.json.JSONArray
+import org.json.JSONObject
 
 class BilisoundPlayerModule : Module() {
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -89,6 +91,36 @@ class BilisoundPlayerModule : Module() {
                     promise.resolve()
                 } catch (e: Exception) {
                     promise.reject("PLAYER_ERROR", "Unable to add single track", e)
+                }
+            }
+        }
+
+        AsyncFunction("getTracks") { promise: Promise ->
+            mainHandler.post {
+                try {
+                    val controller = getController()
+                    val tracks = JSONArray()
+
+                    for (i in 0 until controller.mediaItemCount) {
+                        val mediaItem = controller.getMediaItemAt(i)
+                        val metadata = mediaItem.mediaMetadata
+                        
+                        val trackInfo = JSONObject().apply {
+                            put("uri", mediaItem.localConfiguration?.uri?.toString() ?: "")
+                            put("artworkUri", metadata.artworkUri?.toString())
+                            put("title", metadata.title)
+                            put("artist", metadata.artist)
+                            put("duration", metadata.durationMs?.div(1000) ?: 0)
+                            put("httpHeaders", metadata.extras?.getString("httpHeaders"))
+                            put("extendedData", metadata.extras?.getString("extendedData"))
+                        }
+                        
+                        tracks.put(trackInfo)
+                    }
+
+                    promise.resolve(tracks.toString())
+                } catch (e: Exception) {
+                    promise.reject("PLAYER_ERROR", "无法获取曲目列表", e)
                 }
             }
         }

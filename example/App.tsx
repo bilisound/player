@@ -3,8 +3,14 @@ import { TrackData } from "bilisound-player/types";
 import { Button, StyleSheet, Text, View } from "react-native";
 
 export default function App() {
-  function handleAddTrack(trackData: TrackData) {
-    BilisoundPlayer.addTrack(trackData);
+  async function handleAddTrack(trackData: TrackData) {
+    const result = await BilisoundPlayer.addTrack(trackData);
+    console.log({ result });
+  }
+
+  async function handleGetAllTracks() {
+    const result = await BilisoundPlayer.getTracks();
+    console.log(JSON.stringify(result, null, 4));
   }
 
   return (
@@ -40,6 +46,7 @@ export default function App() {
       />
       <Button onPress={() => BilisoundPlayer.play()} title="Play" />
       <Button onPress={() => BilisoundPlayer.togglePlayback()} title="Toggle" />
+      <Button onPress={handleGetAllTracks} title="Get All Tracks" />
     </View>
   );
 }
