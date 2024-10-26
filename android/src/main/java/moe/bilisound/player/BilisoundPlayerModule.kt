@@ -4,7 +4,6 @@ import android.content.ComponentName
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
@@ -53,7 +52,7 @@ class BilisoundPlayerModule : Module() {
             }
         }
 
-        AsyncFunction("playAudio") { promise: Promise ->
+        AsyncFunction("play") { promise: Promise ->
             mainHandler.post {
                 try {
                     val controller = getController()
@@ -77,6 +76,19 @@ class BilisoundPlayerModule : Module() {
                     promise.resolve()
                 } catch (e: Exception) {
                     promise.reject("PLAYER_ERROR", "", e)
+                }
+            }
+        }
+
+        AsyncFunction("addTrack") { jsonContent: String, promise: Promise ->
+            mainHandler.post {
+                try {
+                    val mediaItem = createMediaItemFromTrack(jsonContent)
+                    val controller = getController()
+                    controller.addMediaItem(mediaItem)
+                    promise.resolve()
+                } catch (e: Exception) {
+                    promise.reject("PLAYER_ERROR", "Unable to add single track", e)
                 }
             }
         }
