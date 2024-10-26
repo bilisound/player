@@ -24,7 +24,7 @@ class BilisoundPlayerModule : Module() {
 
     private fun getController(): MediaController {
         val controller = controllerFuture?.get() ?: throw Exception("Controller not ready")
-        return  controller
+        return controller
     }
 
     @OptIn(UnstableApi::class)
