@@ -24,27 +24,25 @@ class PlaybackService : MediaSessionService() {
         super.onCreate()
         
         // 创建自定义的 DataSource.Factory
-        val httpDataSourceFactory = object : DataSource.Factory {
-            override fun createDataSource(): DataSource {
-                return DefaultHttpDataSource.Factory()
-                    .setDefaultRequestProperties(mapOf(
-                        "User-Agent" to "BiliSound Android App"
-                    ))
-                    .createDataSource()
-                    .apply {
-                        mainThreadExecutor.execute {
-                            val currentItem = mediaSession?.player?.currentMediaItem
-                            val extras = currentItem?.mediaMetadata?.extras
-                            if (extras != null) {
-                                val headers = extras.getString("headers")?.split(",")
-                                headers?.forEach { header ->
-                                    val (key, value) = header.split(":")
-                                    setRequestProperty(key.trim(), value.trim())
-                                }
+        val httpDataSourceFactory = DataSource.Factory {
+            DefaultHttpDataSource.Factory()
+                .setDefaultRequestProperties(mapOf(
+                    "User-Agent" to "BiliSound Android App"
+                ))
+                .createDataSource()
+                .apply {
+                    mainThreadExecutor.execute {
+                        val currentItem = mediaSession?.player?.currentMediaItem
+                        val extras = currentItem?.mediaMetadata?.extras
+                        if (extras != null) {
+                            val headers = extras.getString("headers")?.split(",")
+                            headers?.forEach { header ->
+                                val (key, value) = header.split(":")
+                                setRequestProperty(key.trim(), value.trim())
                             }
                         }
                     }
-            }
+                }
         }
 
         // 使用自定义的 DataSource.Factory 创建 MediaSourceFactory
