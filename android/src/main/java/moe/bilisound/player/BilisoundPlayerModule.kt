@@ -21,7 +21,11 @@ class BilisoundPlayerModule : Module() {
     private val context: Context
         get() = appContext.reactContext ?: throw Exceptions.ReactContextLost()
     private var controllerFuture: ListenableFuture<MediaController>? = null
-    val TAG = "BilisoundPlayerModule"
+
+    private fun getController(): MediaController {
+        val controller = controllerFuture?.get() ?: throw Exception("Controller not ready")
+        return  controller
+    }
 
     @OptIn(UnstableApi::class)
     override fun definition() = ModuleDefinition {
@@ -52,12 +56,8 @@ class BilisoundPlayerModule : Module() {
         AsyncFunction("playAudio") { promise: Promise ->
             mainHandler.post {
                 try {
-                    val controller = controllerFuture?.get()
-                    Log.i(TAG, "controller: " + controller.toString())
-                    if (controller == null) {
-                        promise.reject("PLAYER_ERROR", "Controller not ready", null)
-                    }
-                    controller!!.play()
+                    val controller = getController()
+                    controller.play()
                     promise.resolve(null)
                 } catch (e: Exception) {
                     promise.reject("PLAYER_ERROR", "", e)
@@ -68,11 +68,8 @@ class BilisoundPlayerModule : Module() {
         AsyncFunction("togglePlayback") { promise: Promise ->
             mainHandler.post {
                 try {
-                    val controller = controllerFuture?.get()
-                    if (controller == null) {
-                        promise.reject("PLAYER_ERROR", "Controller not ready", null)
-                    }
-                    if (controller!!.isPlaying()) {
+                    val controller = getController()
+                    if (controller.isPlaying()) {
                         controller.pause()
                     } else {
                         controller.play()
