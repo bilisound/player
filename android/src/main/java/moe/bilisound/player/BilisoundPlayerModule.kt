@@ -67,7 +67,19 @@ class BilisoundPlayerModule : Module() {
             }
         }
 
-        AsyncFunction("togglePlayback") { promise: Promise ->
+        AsyncFunction("pause") { promise: Promise ->
+            mainHandler.post {
+                try {
+                    val controller = getController()
+                    controller.pause()
+                    promise.resolve(null)
+                } catch (e: Exception) {
+                    promise.reject("PLAYER_ERROR", "", e)
+                }
+            }
+        }
+
+        AsyncFunction("toggle") { promise: Promise ->
             mainHandler.post {
                 try {
                     val controller = getController()

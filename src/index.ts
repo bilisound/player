@@ -9,10 +9,17 @@ export function play(): Promise<void> {
 }
 
 /**
+ * 暂停
+ */
+export function pause(): Promise<void> {
+  return BilisoundPlayerModule.pause();
+}
+
+/**
  * 切换播放/暂停状态
  */
-export function togglePlayback(): Promise<void> {
-  return BilisoundPlayerModule.togglePlayback();
+export function toggle(): Promise<void> {
+  return BilisoundPlayerModule.toggle();
 }
 
 /**

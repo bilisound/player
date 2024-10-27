@@ -39,7 +39,7 @@ export default function App() {
         title="Add Track 2 at index 1"
       />
       <Button onPress={() => BilisoundPlayer.play()} title="Play" />
-      <Button onPress={() => BilisoundPlayer.togglePlayback()} title="Toggle" />
+      <Button onPress={() => BilisoundPlayer.toggle()} title="Toggle" />
       <Button onPress={handleGetAllTracks} title="Get All Tracks" />
     </View>
   );
