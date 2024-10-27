@@ -55,6 +55,8 @@ class BilisoundPlayerModule : Module() {
 
         OnDestroy {
             mainHandler.post {
+                val controller = getController()
+                controller.release()
             }
         }
 
