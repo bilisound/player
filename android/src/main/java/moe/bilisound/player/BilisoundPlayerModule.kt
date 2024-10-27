@@ -205,6 +205,31 @@ class BilisoundPlayerModule : Module() {
             }
         }
 
+        AsyncFunction("replaceTrack") { jsonContent: String, index: Int, promise: Promise ->
+            mainHandler.post {
+                try {
+                    val controller = getController()
+                    if (index < 0 || index >= controller.mediaItemCount) {
+                        throw IllegalArgumentException("无效的索引")
+                    }
+
+                    val mediaItem = createMediaItemFromTrack(jsonContent)
+                    val currentIndex = controller.currentMediaItemIndex
+
+                    controller.removeMediaItem(index)
+                    controller.addMediaItem(index, mediaItem)
+                    // 如果替换的是当前正在播放的，重新跳转回之前的 index
+                    if (currentIndex == index) {
+                        controller.seekTo(index, 0)
+                    }
+
+                    promise.resolve()
+                } catch (e: Exception) {
+                    promise.reject("PLAYER_ERROR", "无法修改指定曲目信息", e)
+                }
+            }
+        }
+
         Events("onPlaybackStateChange")
     }
 }

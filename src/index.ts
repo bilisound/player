@@ -1,5 +1,6 @@
 import BilisoundPlayerModule from "./BilisoundPlayerModule";
 import { TrackData, TrackDataInternal } from "./types";
+import { toTrackDataInternal } from "./utils";
 
 /**
  * 播放
@@ -28,19 +29,7 @@ export function toggle(): Promise<void> {
  * @param index 插入位置。不指定则插入到末尾
  */
 export function addTrack(trackData: TrackData, index?: number): Promise<void> {
-  const builtTrackData: TrackDataInternal = {
-    uri: trackData.uri,
-    artworkUri: trackData.artworkUri ?? null,
-    title: trackData.title ?? null,
-    artist: trackData.artist ?? null,
-    duration: trackData.duration ?? null,
-    httpHeaders: trackData.httpHeaders
-      ? JSON.stringify(trackData.httpHeaders)
-      : null,
-    extendedData: trackData.extendedData
-      ? JSON.stringify(trackData.extendedData)
-      : null,
-  };
+  const builtTrackData = toTrackDataInternal(trackData);
   if (typeof index === "number") {
     return BilisoundPlayerModule.addTrackAt(
       JSON.stringify(builtTrackData),
@@ -60,22 +49,10 @@ export function addTracks(
   index?: number,
 ): Promise<void> {
   const processedData: TrackDataInternal[] = [];
-  trackDatas.forEach((trackData) => {
-    const builtTrackData: TrackDataInternal = {
-      uri: trackData.uri,
-      artworkUri: trackData.artworkUri ?? null,
-      title: trackData.title ?? null,
-      artist: trackData.artist ?? null,
-      duration: trackData.duration ?? null,
-      httpHeaders: trackData.httpHeaders
-        ? JSON.stringify(trackData.httpHeaders)
-        : null,
-      extendedData: trackData.extendedData
-        ? JSON.stringify(trackData.extendedData)
-        : null,
-    };
-    processedData.push(builtTrackData);
-  });
+  for (let i = 0; i < trackDatas.length; i++) {
+    const trackData = trackDatas[i];
+    processedData.push(toTrackDataInternal(trackData));
+  }
   if (typeof index === "number") {
     return BilisoundPlayerModule.addTracksAt(
       JSON.stringify(processedData),
@@ -99,4 +76,20 @@ export async function getTracks(): Promise<TrackData[]> {
       extendedData: e.extendedData ? JSON.parse(e.extendedData) : undefined,
     } as TrackData;
   });
+}
+
+/**
+ * 替换曲目。如果替换的曲目是当前正在播放的，会导致当前播放的曲目重新开始播放
+ * @param trackData 待替换曲目
+ * @param index 被替换的曲目的 index
+ */
+export async function replaceTrack(
+  trackData: TrackData,
+  index: number,
+): Promise<void> {
+  const builtTrackData = toTrackDataInternal(trackData);
+  return BilisoundPlayerModule.replaceTrack(
+    JSON.stringify(builtTrackData),
+    index,
+  );
 }

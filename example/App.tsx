@@ -36,7 +36,18 @@ export default function App() {
             1,
           )
         }
-        title="Add Track 2 at index 1"
+        title="Add index 1"
+      />
+      <Button
+        onPress={async () =>
+          await BilisoundPlayer.replaceTrack(
+            {
+              uri: "https://assets.tcdww.cn/website/test/05 パシオン.m4a",
+            },
+            1,
+          )
+        }
+        title="Replace index 1"
       />
       <Button onPress={() => BilisoundPlayer.play()} title="Play" />
       <Button onPress={() => BilisoundPlayer.toggle()} title="Toggle" />
