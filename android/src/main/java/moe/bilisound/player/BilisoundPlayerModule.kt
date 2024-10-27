@@ -4,6 +4,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import androidx.annotation.OptIn
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
@@ -17,6 +18,8 @@ import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import org.json.JSONArray
 import org.json.JSONObject
+
+const val TAG = "BilisoundPlayerModule"
 
 class BilisoundPlayerModule : Module() {
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -98,6 +101,7 @@ class BilisoundPlayerModule : Module() {
         AsyncFunction("addTrack") { jsonContent: String, promise: Promise ->
             mainHandler.post {
                 try {
+                    Log.d(TAG, "用户尝试添加曲目。接收内容：$jsonContent")
                     val mediaItem = createMediaItemFromTrack(jsonContent)
                     val controller = getController()
                     controller.addMediaItem(mediaItem)
@@ -111,6 +115,7 @@ class BilisoundPlayerModule : Module() {
         AsyncFunction("addTrackAt") { jsonContent: String, index: Int, promise: Promise ->
             mainHandler.post {
                 try {
+                    Log.d(TAG, "用户尝试添加曲目到指定位置。接收内容：$jsonContent")
                     val mediaItem = createMediaItemFromTrack(jsonContent)
                     val controller = getController()
                     
@@ -127,11 +132,13 @@ class BilisoundPlayerModule : Module() {
         AsyncFunction("addTracks") { jsonContent: String, promise: Promise ->
             mainHandler.post {
                 try {
+                    Log.d(TAG, "用户尝试添加多首曲目")
                     val jsonArray = JSONArray(jsonContent)
                     val mediaItems = mutableListOf<MediaItem>()
                     
                     for (i in 0 until jsonArray.length()) {
                         val trackJson = jsonArray.getString(i)
+                        Log.d(TAG, "接收内容：$trackJson")
                         val mediaItem = createMediaItemFromTrack(trackJson)
                         mediaItems.add(mediaItem)
                     }
@@ -148,11 +155,13 @@ class BilisoundPlayerModule : Module() {
         AsyncFunction("addTracksAt") { jsonContent: String, index: Int, promise: Promise ->
             mainHandler.post {
                 try {
+                    Log.d(TAG, "用户尝试添加多首曲目到指定位置。接收内容：$jsonContent")
                     val jsonArray = JSONArray(jsonContent)
                     val mediaItems = mutableListOf<MediaItem>()
                     
                     for (i in 0 until jsonArray.length()) {
                         val trackJson = jsonArray.getString(i)
+                        Log.d(TAG, "接收内容：$trackJson")
                         val mediaItem = createMediaItemFromTrack(trackJson)
                         mediaItems.add(mediaItem)
                     }
