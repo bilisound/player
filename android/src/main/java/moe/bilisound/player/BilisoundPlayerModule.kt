@@ -207,7 +207,7 @@ class BilisoundPlayerModule : Module() {
             }
         }
 
-        AsyncFunction("replaceTrack") { jsonContent: String, index: Int, promise: Promise ->
+        AsyncFunction("replaceTrack") { index: Int, jsonContent: String, promise: Promise ->
             mainHandler.post {
                 try {
                     val controller = getController()
@@ -216,14 +216,7 @@ class BilisoundPlayerModule : Module() {
                     }
 
                     val mediaItem = createMediaItemFromTrack(jsonContent)
-                    val currentIndex = controller.currentMediaItemIndex
-
-                    controller.removeMediaItem(index)
-                    controller.addMediaItem(index, mediaItem)
-                    // 如果替换的是当前正在播放的，重新跳转回之前的 index
-                    if (currentIndex == index) {
-                        controller.seekTo(index, 0)
-                    }
+                    controller.replaceMediaItem(index, mediaItem)
 
                     promise.resolve()
                 } catch (e: Exception) {

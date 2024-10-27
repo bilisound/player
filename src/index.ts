@@ -84,12 +84,12 @@ export async function getTracks(): Promise<TrackData[]> {
  * @param index 被替换的曲目的 index
  */
 export async function replaceTrack(
-  trackData: TrackData,
   index: number,
+  trackData: TrackData,
 ): Promise<void> {
   const builtTrackData = toTrackDataInternal(trackData);
   return BilisoundPlayerModule.replaceTrack(
-    JSON.stringify(builtTrackData),
     index,
+    JSON.stringify(builtTrackData),
   );
 }

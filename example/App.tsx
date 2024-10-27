@@ -40,12 +40,10 @@ export default function App() {
       />
       <Button
         onPress={async () =>
-          await BilisoundPlayer.replaceTrack(
-            {
-              uri: "https://assets.tcdww.cn/website/test/05 パシオン.m4a",
-            },
-            1,
-          )
+          await BilisoundPlayer.replaceTrack(1, {
+            uri: "https://assets.tcdww.cn/website/test/05 パシオン.m4a",
+            title: "测试标题 " + Math.random(),
+          })
         }
         title="Replace index 1"
       />
