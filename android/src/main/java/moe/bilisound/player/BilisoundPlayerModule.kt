@@ -5,6 +5,7 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import androidx.annotation.OptIn
+import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
@@ -107,6 +108,48 @@ class BilisoundPlayerModule : Module() {
                     promise.resolve()
                 } catch (e: Exception) {
                     promise.reject("PLAYER_ERROR", "无法在指定位置添加曲目", e)
+                }
+            }
+        }
+
+        AsyncFunction("addTracks") { jsonContent: String, promise: Promise ->
+            mainHandler.post {
+                try {
+                    val jsonArray = JSONArray(jsonContent)
+                    val mediaItems = mutableListOf<MediaItem>()
+                    
+                    for (i in 0 until jsonArray.length()) {
+                        val trackJson = jsonArray.getString(i)
+                        val mediaItem = createMediaItemFromTrack(trackJson)
+                        mediaItems.add(mediaItem)
+                    }
+                    
+                    val controller = getController()
+                    controller.addMediaItems(mediaItems)
+                    promise.resolve()
+                } catch (e: Exception) {
+                    promise.reject("PLAYER_ERROR", "无法批量添加曲目", e)
+                }
+            }
+        }
+
+        AsyncFunction("addTracksAt") { jsonContent: String, index: Int, promise: Promise ->
+            mainHandler.post {
+                try {
+                    val jsonArray = JSONArray(jsonContent)
+                    val mediaItems = mutableListOf<MediaItem>()
+                    
+                    for (i in 0 until jsonArray.length()) {
+                        val trackJson = jsonArray.getString(i)
+                        val mediaItem = createMediaItemFromTrack(trackJson)
+                        mediaItems.add(mediaItem)
+                    }
+                    
+                    val controller = getController()
+                    controller.addMediaItems(index, mediaItems)
+                    promise.resolve()
+                } catch (e: Exception) {
+                    promise.reject("PLAYER_ERROR", "无法在指定位置批量添加曲目", e)
                 }
             }
         }

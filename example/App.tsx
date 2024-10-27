@@ -1,5 +1,4 @@
 import * as BilisoundPlayer from "bilisound-player";
-import { TrackData } from "bilisound-player/types";
 import { Button, StyleSheet, Text, View } from "react-native";
 
 export default function App() {
@@ -13,11 +12,16 @@ export default function App() {
       <Text>Music Player</Text>
       <Button
         onPress={async () =>
-          await BilisoundPlayer.addTrack({
-            uri: "https://assets.tcdww.cn/website/test/01 25時のラブレター.m4a",
-          })
+          await BilisoundPlayer.addTracks([
+            {
+              uri: "https://assets.tcdww.cn/website/test/01 25時のラブレター.m4a",
+            },
+            {
+              uri: "https://assets.tcdww.cn/website/test/01 逃避 行.m4a",
+            },
+          ])
         }
-        title="Add Track 1"
+        title="Add Tracks"
       />
       <Button
         onPress={async () =>
@@ -33,14 +37,6 @@ export default function App() {
           )
         }
         title="Add Track 2 at index 1"
-      />
-      <Button
-        onPress={async () =>
-          await BilisoundPlayer.addTrack({
-            uri: "https://assets.tcdww.cn/website/test/01 逃避 行.m4a",
-          })
-        }
-        title="Add Track 3"
       />
       <Button onPress={() => BilisoundPlayer.play()} title="Play" />
       <Button onPress={() => BilisoundPlayer.togglePlayback()} title="Toggle" />

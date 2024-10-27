@@ -44,6 +44,41 @@ export function addTrack(trackData: TrackData, index?: number): Promise<void> {
 }
 
 /**
+ * 向播放队列添加多首曲目
+ * @param trackDatas 曲目信息
+ * @param index 插入位置。不指定则插入到末尾
+ */
+export function addTracks(
+  trackDatas: TrackData[],
+  index?: number,
+): Promise<void> {
+  const processedData: TrackDataInternal[] = [];
+  trackDatas.forEach((trackData) => {
+    const builtTrackData: TrackDataInternal = {
+      uri: trackData.uri,
+      artworkUri: trackData.artworkUri ?? null,
+      title: trackData.title ?? null,
+      artist: trackData.artist ?? null,
+      duration: trackData.duration ?? null,
+      httpHeaders: trackData.httpHeaders
+        ? JSON.stringify(trackData.httpHeaders)
+        : null,
+      extendedData: trackData.extendedData
+        ? JSON.stringify(trackData.extendedData)
+        : null,
+    };
+    processedData.push(builtTrackData);
+  });
+  if (typeof index === "number") {
+    return BilisoundPlayerModule.addTracksAt(
+      JSON.stringify(processedData),
+      index,
+    );
+  }
+  return BilisoundPlayerModule.addTracks(JSON.stringify(processedData));
+}
+
+/**
  * 获取整个播放队列
  * @returns {Promise<TrackData[]>} 整个播放队列
  */
