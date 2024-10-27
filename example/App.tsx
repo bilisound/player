@@ -3,11 +3,6 @@ import { TrackData } from "bilisound-player/types";
 import { Button, StyleSheet, Text, View } from "react-native";
 
 export default function App() {
-  async function handleAddTrack(trackData: TrackData) {
-    const result = await BilisoundPlayer.addTrack(trackData);
-    console.log({ result });
-  }
-
   async function handleGetAllTracks() {
     const result = await BilisoundPlayer.getTracks();
     console.log(JSON.stringify(result, null, 4));
@@ -17,28 +12,31 @@ export default function App() {
     <View style={styles.container}>
       <Text>Music Player</Text>
       <Button
-        onPress={() =>
-          handleAddTrack({
+        onPress={async () =>
+          await BilisoundPlayer.addTrack({
             uri: "https://assets.tcdww.cn/website/test/01 25時のラブレター.m4a",
           })
         }
         title="Add Track 1"
       />
       <Button
-        onPress={() =>
-          handleAddTrack({
-            uri: "https://assets.tcdww.cn/website/test/01 ユナイト.m4a",
-            artworkUri: "https://assets.tcdww.cn/website/test/8%20(106).jpg",
-            httpHeaders: {
-              "User-Agent": "Mozilla/5.0",
+        onPress={async () =>
+          await BilisoundPlayer.addTrack(
+            {
+              uri: "https://assets.tcdww.cn/website/test/01 ユナイト.m4a",
+              artworkUri: "https://assets.tcdww.cn/website/test/8%20(106).jpg",
+              httpHeaders: {
+                "User-Agent": "Mozilla/5.0",
+              },
             },
-          })
+            1,
+          )
         }
-        title="Add Track 2"
+        title="Add Track 2 at index 1"
       />
       <Button
-        onPress={() =>
-          handleAddTrack({
+        onPress={async () =>
+          await BilisoundPlayer.addTrack({
             uri: "https://assets.tcdww.cn/website/test/01 逃避 行.m4a",
           })
         }

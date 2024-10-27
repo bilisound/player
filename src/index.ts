@@ -18,8 +18,9 @@ export function togglePlayback(): Promise<void> {
 /**
  * 向播放队列添加单首曲目
  * @param trackData 曲目信息
+ * @param index 插入位置。不指定则插入到末尾
  */
-export function addTrack(trackData: TrackData): Promise<void> {
+export function addTrack(trackData: TrackData, index?: number): Promise<void> {
   const builtTrackData: TrackDataInternal = {
     uri: trackData.uri,
     artworkUri: trackData.artworkUri ?? null,
@@ -33,6 +34,12 @@ export function addTrack(trackData: TrackData): Promise<void> {
       ? JSON.stringify(trackData.extendedData)
       : null,
   };
+  if (typeof index === "number") {
+    return BilisoundPlayerModule.addTrackAt(
+      JSON.stringify(builtTrackData),
+      index,
+    );
+  }
   return BilisoundPlayerModule.addTrack(JSON.stringify(builtTrackData));
 }
 

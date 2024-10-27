@@ -90,7 +90,23 @@ class BilisoundPlayerModule : Module() {
                     controller.addMediaItem(mediaItem)
                     promise.resolve()
                 } catch (e: Exception) {
-                    promise.reject("PLAYER_ERROR", "Unable to add single track", e)
+                    promise.reject("PLAYER_ERROR", "无法添加单首曲目", e)
+                }
+            }
+        }
+
+        AsyncFunction("addTrackAt") { jsonContent: String, index: Int, promise: Promise ->
+            mainHandler.post {
+                try {
+                    val mediaItem = createMediaItemFromTrack(jsonContent)
+                    val controller = getController()
+                    
+                    // 添加曲目到指定的 index
+                    controller.addMediaItem(index, mediaItem)
+                    
+                    promise.resolve()
+                } catch (e: Exception) {
+                    promise.reject("PLAYER_ERROR", "无法在指定位置添加曲目", e)
                 }
             }
         }
