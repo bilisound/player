@@ -1,16 +1,19 @@
 import { useSyncExternalStore } from "react";
 
 import { getProgress } from "../index";
-
-interface Progress {
-  duration: number;
-  position: number;
-  buffered: number;
-}
+import { PlaybackProgress } from "../types";
 
 const progressListeners: Set<() => void> = new Set();
-let previousProgress: Progress = { duration: 0, position: 0, buffered: 0 };
-let currentProgress: Progress = { duration: 0, position: 0, buffered: 0 };
+let previousProgress: PlaybackProgress = {
+  duration: 0,
+  position: 0,
+  buffered: 0,
+};
+let currentProgress: PlaybackProgress = {
+  duration: 0,
+  position: 0,
+  buffered: 0,
+};
 let intervalId: any | null = null;
 
 const startFetchingProgress = () => {
@@ -48,11 +51,13 @@ const subscribe = (listener: () => void) => {
   };
 };
 
-const getSnapshot = (): Progress => {
+const getSnapshot = (): PlaybackProgress => {
   return currentProgress;
 };
 
+/**
+ * 获取当前播放进度、总时长和已加载时长
+ */
 export const useProgress = () => {
-  // 使用 useSyncExternalStore 订阅进度变化
   return useSyncExternalStore(subscribe, getSnapshot);
 };
