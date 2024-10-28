@@ -121,13 +121,10 @@ class BilisoundPlayerModule : Module() {
             mainHandler.post {
                 try {
                     val controller = getController()
-                    if (retainPitch) {
-                        val playbackParameters = PlaybackParameters(speed)
-                        controller.playbackParameters = playbackParameters
-                    } else {
-                        val playbackParameters = PlaybackParameters(speed, speed)
-                        controller.playbackParameters = playbackParameters
-                    }
+                    controller.playbackParameters = PlaybackParameters(
+                        speed,
+                        if (retainPitch) 1.0f else speed
+                    )
                     promise.resolve()
                 } catch (e: Exception) {
                     promise.reject("PLAYER_ERROR", "无法调整播放进度 (${e.message})", e)

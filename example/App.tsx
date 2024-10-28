@@ -25,23 +25,20 @@ export default function App() {
       />
       <Button
         onPress={async () =>
-          await BilisoundPlayer.addTrack(
-            {
-              uri: "https://assets.tcdww.cn/website/test/01 ユナイト.m4a",
-              artworkUri: "https://assets.tcdww.cn/website/test/8%20(106).jpg",
-              httpHeaders: {
-                "User-Agent": "Mozilla/5.0",
-              },
+          await BilisoundPlayer.addTrack({
+            uri: "http://10.0.2.2:3000/Music/Media.localized/Music/KOKO/TIME%20-%20Single/01%20TIME.m4a",
+            httpHeaders: {
+              "User-Agent": "Mozilla/5.0",
             },
-            1,
-          )
+          })
         }
-        title="Add index 1"
+        title="Add another"
       />
       <Button
         onPress={async () =>
           await BilisoundPlayer.replaceTrack(1, {
             uri: "https://assets.tcdww.cn/website/test/05 パシオン.m4a",
+            artworkUri: "https://assets.tcdww.cn/website/test/8%20(106).jpg",
             title: "测试标题 " + Math.random(),
           })
         }
