@@ -71,7 +71,7 @@ class BilisoundPlayerModule : Module() {
                     controller.play()
                     promise.resolve(null)
                 } catch (e: Exception) {
-                    promise.reject("PLAYER_ERROR", "", e)
+                    promise.reject("PLAYER_ERROR", "无法执行播放操作 (${e.message})", e)
                 }
             }
         }
@@ -83,7 +83,7 @@ class BilisoundPlayerModule : Module() {
                     controller.pause()
                     promise.resolve(null)
                 } catch (e: Exception) {
-                    promise.reject("PLAYER_ERROR", "", e)
+                    promise.reject("PLAYER_ERROR", "无法执行暂停操作 (${e.message})", e)
                 }
             }
         }
@@ -99,7 +99,7 @@ class BilisoundPlayerModule : Module() {
                     }
                     promise.resolve()
                 } catch (e: Exception) {
-                    promise.reject("PLAYER_ERROR", "", e)
+                    promise.reject("PLAYER_ERROR", "无法切换播放暂停状态 (${e.message})", e)
                 }
             }
         }
@@ -113,7 +113,7 @@ class BilisoundPlayerModule : Module() {
                     controller.addMediaItem(mediaItem)
                     promise.resolve()
                 } catch (e: Exception) {
-                    promise.reject("PLAYER_ERROR", "无法添加单首曲目", e)
+                    promise.reject("PLAYER_ERROR", "无法添加单首曲目 (${e.message})", e)
                 }
             }
         }
@@ -130,7 +130,7 @@ class BilisoundPlayerModule : Module() {
                     
                     promise.resolve()
                 } catch (e: Exception) {
-                    promise.reject("PLAYER_ERROR", "无法在指定位置添加曲目", e)
+                    promise.reject("PLAYER_ERROR", "无法在指定位置添加曲目 (${e.message})", e)
                 }
             }
         }
@@ -153,7 +153,7 @@ class BilisoundPlayerModule : Module() {
                     controller.addMediaItems(mediaItems)
                     promise.resolve()
                 } catch (e: Exception) {
-                    promise.reject("PLAYER_ERROR", "无法批量添加曲目", e)
+                    promise.reject("PLAYER_ERROR", "无法批量添加曲目 (${e.message})", e)
                 }
             }
         }
@@ -176,7 +176,7 @@ class BilisoundPlayerModule : Module() {
                     controller.addMediaItems(index, mediaItems)
                     promise.resolve()
                 } catch (e: Exception) {
-                    promise.reject("PLAYER_ERROR", "无法在指定位置批量添加曲目", e)
+                    promise.reject("PLAYER_ERROR", "无法在指定位置批量添加曲目 (${e.message})", e)
                 }
             }
         }
@@ -206,7 +206,7 @@ class BilisoundPlayerModule : Module() {
 
                     promise.resolve(tracks.toString())
                 } catch (e: Exception) {
-                    promise.reject("PLAYER_ERROR", "无法获取曲目列表", e)
+                    promise.reject("PLAYER_ERROR", "无法获取曲目列表 (${e.message})", e)
                 }
             }
         }
@@ -225,7 +225,7 @@ class BilisoundPlayerModule : Module() {
 
                     promise.resolve()
                 } catch (e: Exception) {
-                    promise.reject("PLAYER_ERROR", "无法修改指定曲目信息", e)
+                    promise.reject("PLAYER_ERROR", "无法修改指定曲目信息 (${e.message})", e)
                 }
             }
         }
@@ -246,7 +246,7 @@ class BilisoundPlayerModule : Module() {
 
                     promise.resolve()
                 } catch (e: Exception) {
-                    promise.reject("PLAYER_ERROR", "无法删除指定曲目", e)
+                    promise.reject("PLAYER_ERROR", "无法删除指定曲目 (${e.message})", e)
                 }
             }
         }
@@ -280,7 +280,7 @@ class BilisoundPlayerModule : Module() {
                     
                     promise.resolve()
                 } catch (e: Exception) {
-                    promise.reject("PLAYER_ERROR", "无法删除指定曲目", e)
+                    promise.reject("PLAYER_ERROR", "无法删除指定曲目 (${e.message})", e)
                 }
             }
         }

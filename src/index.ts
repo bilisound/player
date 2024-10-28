@@ -95,19 +95,12 @@ export async function replaceTrack(
 }
 
 /**
- * 删除单个曲目
- * @param index
- */
-export async function deleteTrack(index: number): Promise<void> {
-  return BilisoundPlayerModule.deleteTrack(index);
-}
-
-/**
- * 删除多个曲目
+ * 删除曲目
  * @param index
  */
 export async function deleteTracks(index: number | number[]): Promise<void> {
-  return BilisoundPlayerModule.deleteTracks(
-    JSON.stringify(Array.isArray(index) ? index : [index]),
-  );
+  if (Array.isArray(index)) {
+    return BilisoundPlayerModule.deleteTracks(JSON.stringify(index));
+  }
+  return BilisoundPlayerModule.deleteTrack(index);
 }
