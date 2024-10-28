@@ -1,5 +1,5 @@
 import BilisoundPlayerModule from "./BilisoundPlayerModule";
-import { TrackData, TrackDataInternal } from "./types";
+import { PlaybackProgress, TrackData, TrackDataInternal } from "./types";
 import { toTrackDataInternal } from "./utils";
 
 /**
@@ -29,6 +29,13 @@ export function toggle(): Promise<void> {
  */
 export function seek(to: number): Promise<void> {
   return BilisoundPlayerModule.seek(to);
+}
+
+/**
+ * 获取播放进度
+ */
+export async function getProgress(): Promise<PlaybackProgress> {
+  return JSON.parse(await BilisoundPlayerModule.getProgress());
 }
 
 /**

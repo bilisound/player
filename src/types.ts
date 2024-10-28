@@ -19,3 +19,9 @@ export interface TrackDataInternal {
   httpHeaders: string | null;
   extendedData: string | null;
 }
+
+export interface PlaybackProgress {
+  duration: number;
+  position: number;
+  buffered: number;
+}

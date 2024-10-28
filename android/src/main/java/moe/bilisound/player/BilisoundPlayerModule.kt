@@ -117,6 +117,25 @@ class BilisoundPlayerModule : Module() {
             }
         }
 
+        AsyncFunction("getProgress") { promise: Promise ->
+            mainHandler.post {
+                try {
+                    val controller = getController()
+                    val progressInfo = JSONObject().apply {
+                        // 总时长（毫秒转秒）
+                        put("duration", controller.duration.coerceAtLeast(0) / 1000.0)
+                        // 当前播放进度（毫秒转秒）
+                        put("position", controller.currentPosition.coerceAtLeast(0) / 1000.0)
+                        // 已缓冲进度（毫秒转秒）
+                        put("buffered", controller.bufferedPosition.coerceAtLeast(0) / 1000.0)
+                    }
+                    promise.resolve(progressInfo.toString())
+                } catch (e: Exception) {
+                    promise.reject("PLAYER_ERROR", "无法获取播放进度 (${e.message})", e)
+                }
+            }
+        }
+
         AsyncFunction("setSpeed") { speed: Float, retainPitch: Boolean, promise: Promise ->
             mainHandler.post {
                 try {

@@ -47,7 +47,13 @@ export default function App() {
       <View style={styles.row}>
         <Button onPress={() => BilisoundPlayer.play()} title="Play" />
         <Button onPress={() => BilisoundPlayer.toggle()} title="Toggle" />
-        <Button onPress={() => BilisoundPlayer.seek(20)} title="Seek to 20s" />
+        <Button onPress={() => BilisoundPlayer.seek(20)} title="seek 20 秒" />
+        <Button
+          onPress={() =>
+            BilisoundPlayer.getProgress().then((e) => console.log(e))
+          }
+          title="查进度"
+        />
       </View>
       <View style={styles.row}>
         <Button onPress={() => BilisoundPlayer.setSpeed(1)} title="Speed 1" />
