@@ -47,8 +47,24 @@ export default function App() {
         }
         title="Replace index 1"
       />
-      <Button onPress={() => BilisoundPlayer.play()} title="Play" />
-      <Button onPress={() => BilisoundPlayer.toggle()} title="Toggle" />
+      <View style={styles.row}>
+        <Button onPress={() => BilisoundPlayer.play()} title="Play" />
+        <Button onPress={() => BilisoundPlayer.toggle()} title="Toggle" />
+        <Button onPress={() => BilisoundPlayer.seek(20)} title="Seek to 20s" />
+      </View>
+      <View style={styles.row}>
+        <Button onPress={() => BilisoundPlayer.setSpeed(1)} title="Speed 1" />
+        <Button
+          onPress={() => BilisoundPlayer.setSpeed(0.8, false)}
+          title="0.8"
+        />
+        <Button onPress={() => BilisoundPlayer.setSpeed(0.8)} title="0.8 R" />
+        <Button
+          onPress={() => BilisoundPlayer.setSpeed(1.2, false)}
+          title="1.2"
+        />
+        <Button onPress={() => BilisoundPlayer.setSpeed(1.2)} title="1.2 R" />
+      </View>
       <Button
         onPress={() => BilisoundPlayer.deleteTracks([2, 1])}
         title="Delete Track index 2, 1"
@@ -65,5 +81,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
+  },
+  row: {
+    gap: 8,
+    flexDirection: "row",
+    alignItems: "center",
   },
 });

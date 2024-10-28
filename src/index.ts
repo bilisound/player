@@ -24,6 +24,23 @@ export function toggle(): Promise<void> {
 }
 
 /**
+ * 调整播放进度
+ * @param to 播放进度（秒）
+ */
+export function seek(to: number): Promise<void> {
+  return BilisoundPlayerModule.seek(to);
+}
+
+/**
+ * 调整播放速度
+ * @param speed 播放速度
+ * @param retainPitch 保持音高与正常速度一致
+ */
+export function setSpeed(speed: number, retainPitch = true): Promise<void> {
+  return BilisoundPlayerModule.setSpeed(speed, retainPitch);
+}
+
+/**
  * 向播放队列添加单首曲目
  * @param trackData 曲目信息
  * @param index 插入位置。不指定则插入到末尾

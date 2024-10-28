@@ -7,6 +7,7 @@ import android.os.Looper
 import android.util.Log
 import androidx.annotation.OptIn
 import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
@@ -100,6 +101,36 @@ class BilisoundPlayerModule : Module() {
                     promise.resolve()
                 } catch (e: Exception) {
                     promise.reject("PLAYER_ERROR", "无法切换播放暂停状态 (${e.message})", e)
+                }
+            }
+        }
+
+        AsyncFunction("seek")  { to: Long, promise: Promise ->
+            mainHandler.post {
+                try {
+                    val controller = getController()
+                    controller.seekTo(to * 1000)
+                    promise.resolve()
+                } catch (e: Exception) {
+                    promise.reject("PLAYER_ERROR", "无法调整播放进度 (${e.message})", e)
+                }
+            }
+        }
+
+        AsyncFunction("setSpeed") { speed: Float, retainPitch: Boolean, promise: Promise ->
+            mainHandler.post {
+                try {
+                    val controller = getController()
+                    if (retainPitch) {
+                        val playbackParameters = PlaybackParameters(speed)
+                        controller.playbackParameters = playbackParameters
+                    } else {
+                        val playbackParameters = PlaybackParameters(speed, speed)
+                        controller.playbackParameters = playbackParameters
+                    }
+                    promise.resolve()
+                } catch (e: Exception) {
+                    promise.reject("PLAYER_ERROR", "无法调整播放进度 (${e.message})", e)
                 }
             }
         }
