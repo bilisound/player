@@ -60,6 +60,10 @@ class BilisoundPlayerModule : Module() {
             }
         }
 
+        OnStartObserving {}
+
+        OnStopObserving {}
+
         AsyncFunction("play") { promise: Promise ->
             mainHandler.post {
                 try {
@@ -221,6 +225,59 @@ class BilisoundPlayerModule : Module() {
                     promise.resolve()
                 } catch (e: Exception) {
                     promise.reject("PLAYER_ERROR", "无法修改指定曲目信息", e)
+                }
+            }
+        }
+
+        AsyncFunction("deleteTrack") { index: Int, promise: Promise ->
+            mainHandler.post {
+                try {
+                    val controller = getController()
+
+                    // 验证所有索引是否有效
+                    if (index < 0 || index >= controller.mediaItemCount) {
+                        throw IllegalArgumentException("无效的索引: $invalidIndex")
+                    }
+
+                    // 删除单个曲目
+                    controller.removeMediaItem(index)
+
+                    promise.resolve()
+                } catch (e: Exception) {
+                    promise.reject("PLAYER_ERROR", "无法删除指定曲目", e)
+                }
+            }
+        }
+
+        AsyncFunction("deleteTracks") { jsonContent: String, promise: Promise ->
+            mainHandler.post {
+                try {
+                    val controller = getController()
+                    val jsonArray = JSONArray(jsonContent)
+                    
+                    // 将索引转换为列表并排序（从大到小）
+                    val indices = mutableListOf<Int>()
+                    for (i in 0 until jsonArray.length()) {
+                        indices.add(jsonArray.getInt(i))
+                    }
+                    
+                    // 验证所有索引是否有效
+                    val invalidIndex = indices.find { it < 0 || it >= controller.mediaItemCount }
+                    if (invalidIndex != null) {
+                        throw IllegalArgumentException("无效的索引: $invalidIndex")
+                    }
+                    
+                    // 从大到小排序
+                    indices.sortDescending()
+                    
+                    // 从大到小依次删除，这样不会影响后面要删除项目的索引
+                    for (index in indices) {
+                        controller.removeMediaItem(index)
+                    }
+                    
+                    promise.resolve()
+                } catch (e: Exception) {
+                    promise.reject("PLAYER_ERROR", "无法删除指定曲目", e)
                 }
             }
         }

@@ -49,6 +49,10 @@ export default function App() {
       />
       <Button onPress={() => BilisoundPlayer.play()} title="Play" />
       <Button onPress={() => BilisoundPlayer.toggle()} title="Toggle" />
+      <Button
+        onPress={() => BilisoundPlayer.deleteTracks([2, 1])}
+        title="Delete Track index 2, 1"
+      />
       <Button onPress={handleGetAllTracks} title="Get All Tracks" />
     </View>
   );
