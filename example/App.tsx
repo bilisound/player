@@ -1,4 +1,5 @@
 import * as BilisoundPlayer from "bilisound-player";
+import { useProgress } from "bilisound-player/hooks/useProgress";
 import { Button, StyleSheet, Text, View } from "react-native";
 
 export default function App() {
@@ -7,9 +8,12 @@ export default function App() {
     console.log(JSON.stringify(result, null, 4));
   }
 
+  const progress = useProgress();
+
   return (
     <View style={styles.container}>
       <Text>Music Player</Text>
+      <Text>{`Real time Progress: ${JSON.stringify(progress)}`}</Text>
       <Button
         onPress={async () =>
           await BilisoundPlayer.addTracks([
@@ -51,7 +55,7 @@ export default function App() {
         <Button
           onPress={async () => {
             const begin = performance.now();
-            const result = BilisoundPlayer.getProgress();
+            const result = await BilisoundPlayer.getProgress();
             const end = performance.now();
             console.log(result);
             console.log(end - begin + "ms");
