@@ -41,7 +41,7 @@ export async function getProgress(): Promise<PlaybackProgress> {
 /**
  * 调整播放速度
  * @param speed 播放速度
- * @param retainPitch 保持音高与正常速度一致
+ * @param retainPitch 保持音高与正常速度时一致
  */
 export function setSpeed(speed: number, retainPitch = true): Promise<void> {
   return BilisoundPlayerModule.setSpeed(speed, retainPitch);
