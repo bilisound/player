@@ -49,9 +49,13 @@ export default function App() {
         <Button onPress={() => BilisoundPlayer.toggle()} title="Toggle" />
         <Button onPress={() => BilisoundPlayer.seek(20)} title="seek 20 秒" />
         <Button
-          onPress={() =>
-            BilisoundPlayer.getProgress().then((e) => console.log(e))
-          }
+          onPress={async () => {
+            const begin = performance.now();
+            const result = BilisoundPlayer.getProgress();
+            const end = performance.now();
+            console.log(result);
+            console.log(end - begin + "ms");
+          }}
           title="查进度"
         />
       </View>
