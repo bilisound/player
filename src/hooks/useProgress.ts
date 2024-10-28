@@ -14,7 +14,6 @@ let currentProgress: Progress = { duration: 0, position: 0, buffered: 0 };
 let intervalId: any | null = null;
 
 const startFetchingProgress = () => {
-  console.log("startFetchingProgress");
   if (intervalId) return; // 防止重复启动
 
   intervalId = setInterval(async () => {
@@ -26,14 +25,12 @@ const startFetchingProgress = () => {
       previousProgress.buffered !== result.buffered
     ) {
       currentProgress = result;
-      console.log("Updated! " + result.position);
       progressListeners.forEach((listener) => listener());
     }
   }, 100);
 };
 
 const stopFetchingProgress = () => {
-  console.log("stopFetchingProgress");
   if (intervalId) {
     clearInterval(intervalId);
     intervalId = null;
