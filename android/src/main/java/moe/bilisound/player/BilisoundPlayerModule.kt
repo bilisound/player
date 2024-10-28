@@ -6,9 +6,13 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import androidx.annotation.OptIn
+import androidx.core.os.bundleOf
 import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.PlaybackParameters
+import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.HttpDataSource
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
@@ -37,6 +41,8 @@ class BilisoundPlayerModule : Module() {
     override fun definition() = ModuleDefinition {
         Name("BilisoundPlayer")
 
+        Events(EVENT_PLAYBACK_STATE_CHANGE, EVENT_PLAYBACK_ERROR)
+
         OnCreate {
             mainHandler.post {
                 val sessionToken =
@@ -61,7 +67,64 @@ class BilisoundPlayerModule : Module() {
             }
         }
 
-        OnStartObserving {}
+        OnStartObserving {
+            mainHandler.post {
+                getController().addListener(
+                    object : Player.Listener {
+                        override fun onPlayerError(error: PlaybackException) {
+                            val cause = error.cause
+                            if (cause is HttpDataSource.HttpDataSourceException) {
+                                // An HTTP error occurred.
+                                val httpError = cause
+                                // It's possible to find out more about the error both by casting and by querying
+                                // the cause.
+                                if (httpError is HttpDataSource.InvalidResponseCodeException) {
+                                    // Cast to InvalidResponseCodeException and retrieve the response code, message
+                                    // and headers.
+                                    this@BilisoundPlayerModule.sendEvent(EVENT_PLAYBACK_ERROR, bundleOf(
+                                        "type" to ERROR_BAD_HTTP_STATUS_CODE,
+                                        "message" to httpError.message,
+                                        "code" to httpError.responseCode
+                                    ))
+                                } else {
+                                    // Try calling httpError.getCause() to retrieve the underlying cause, although
+                                    // note that it may be null.
+                                    this@BilisoundPlayerModule.sendEvent(EVENT_PLAYBACK_ERROR, bundleOf(
+                                        "type" to ERROR_NETWORK_FAILURE,
+                                        "message" to httpError.message,
+                                    ))
+                                }
+                            } else {
+                                this@BilisoundPlayerModule.sendEvent(EVENT_PLAYBACK_ERROR, bundleOf(
+                                    "type" to ERROR_GENERIC,
+                                    "message" to cause?.message,
+                                ))
+                            }
+                        }
+
+                        override fun onPlaybackStateChanged(playbackState: Int) {
+                            var type = ""
+                            if (playbackState == Player.STATE_IDLE) {
+                                type = STATE_IDLE
+                            }
+                            if (playbackState == Player.STATE_BUFFERING) {
+                                type = STATE_BUFFERING
+                            }
+                            if (playbackState == Player.STATE_READY) {
+                                type = STATE_READY
+                            }
+                            if (playbackState == Player.STATE_ENDED) {
+                                type = STATE_ENDED
+                            }
+
+                            this@BilisoundPlayerModule.sendEvent(EVENT_PLAYBACK_STATE_CHANGE, bundleOf(
+                                "type" to type,
+                            ))
+                        }
+                    }
+                )
+            }
+        }
 
         OnStopObserving {}
 
