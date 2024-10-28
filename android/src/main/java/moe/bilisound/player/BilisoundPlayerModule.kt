@@ -214,6 +214,7 @@ class BilisoundPlayerModule : Module() {
         AsyncFunction("replaceTrack") { index: Int, jsonContent: String, promise: Promise ->
             mainHandler.post {
                 try {
+                    Log.d(TAG, "用户尝试替换曲目。被替换 index: $index, 接收内容: $jsonContent")
                     val controller = getController()
                     if (index < 0 || index >= controller.mediaItemCount) {
                         throw IllegalArgumentException("无效的索引")
@@ -232,11 +233,12 @@ class BilisoundPlayerModule : Module() {
         AsyncFunction("deleteTrack") { index: Int, promise: Promise ->
             mainHandler.post {
                 try {
+                    Log.d(TAG, "用户尝试删除曲目。被删除 index: $index")
                     val controller = getController()
 
                     // 验证所有索引是否有效
                     if (index < 0 || index >= controller.mediaItemCount) {
-                        throw IllegalArgumentException("无效的索引: $invalidIndex")
+                        throw IllegalArgumentException("无效的索引: $index")
                     }
 
                     // 删除单个曲目
@@ -252,6 +254,7 @@ class BilisoundPlayerModule : Module() {
         AsyncFunction("deleteTracks") { jsonContent: String, promise: Promise ->
             mainHandler.post {
                 try {
+                    Log.d(TAG, "用户尝试删除多个曲目。接收内容: $jsonContent")
                     val controller = getController()
                     val jsonArray = JSONArray(jsonContent)
                     
