@@ -7,12 +7,12 @@ package moe.bilisound.player
 /**
  * 播放状态变更
  */
-const val EVENT_PLAYBACK_STATE_CHANGE = "playbackStateChange"
+const val EVENT_PLAYBACK_STATE_CHANGE = "onPlaybackStateChange"
 
 /**
  * 播放错误
  */
-const val EVENT_PLAYBACK_ERROR = "playbackError"
+const val EVENT_PLAYBACK_ERROR = "onPlaybackError"
 
 // ============================================================================
 // 播放状态

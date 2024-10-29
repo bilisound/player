@@ -1,8 +1,25 @@
 import * as BilisoundPlayer from "bilisound-player";
+import { addListener } from "bilisound-player/events";
 import { useProgress } from "bilisound-player/hooks/useProgress";
+import { useEffect } from "react";
 import { Button, StyleSheet, Text, View } from "react-native";
 
 export default function App() {
+  useEffect(() => {
+    const handler1 = addListener("onPlaybackError", (e) => {
+      console.log("onPlaybackError", e);
+    });
+
+    const handler2 = addListener("onPlaybackStateChange", (e) => {
+      console.log("onPlaybackStateChange", e);
+    });
+
+    return () => {
+      handler1.remove();
+      handler2.remove();
+    };
+  }, []);
+
   async function handleGetAllTracks() {
     const result = await BilisoundPlayer.getTracks();
     console.log(JSON.stringify(result, null, 4));
@@ -30,7 +47,7 @@ export default function App() {
       <Button
         onPress={async () =>
           await BilisoundPlayer.addTrack({
-            uri: "http://10.0.2.2:3000/Music/Media.localized/Music/KOKO/TIME%20-%20Single/01%20TIME.m4a",
+            uri: "https://assets.tcdww.cn/website/test/01%20TIME.m4a",
             httpHeaders: {
               "User-Agent": "Mozilla/5.0",
             },

@@ -69,64 +69,15 @@ class BilisoundPlayerModule : Module() {
 
         OnStartObserving {
             mainHandler.post {
-                getController().addListener(
-                    object : Player.Listener {
-                        override fun onPlayerError(error: PlaybackException) {
-                            val cause = error.cause
-                            if (cause is HttpDataSource.HttpDataSourceException) {
-                                // An HTTP error occurred.
-                                val httpError = cause
-                                // It's possible to find out more about the error both by casting and by querying
-                                // the cause.
-                                if (httpError is HttpDataSource.InvalidResponseCodeException) {
-                                    // Cast to InvalidResponseCodeException and retrieve the response code, message
-                                    // and headers.
-                                    this@BilisoundPlayerModule.sendEvent(EVENT_PLAYBACK_ERROR, bundleOf(
-                                        "type" to ERROR_BAD_HTTP_STATUS_CODE,
-                                        "message" to httpError.message,
-                                        "code" to httpError.responseCode
-                                    ))
-                                } else {
-                                    // Try calling httpError.getCause() to retrieve the underlying cause, although
-                                    // note that it may be null.
-                                    this@BilisoundPlayerModule.sendEvent(EVENT_PLAYBACK_ERROR, bundleOf(
-                                        "type" to ERROR_NETWORK_FAILURE,
-                                        "message" to httpError.message,
-                                    ))
-                                }
-                            } else {
-                                this@BilisoundPlayerModule.sendEvent(EVENT_PLAYBACK_ERROR, bundleOf(
-                                    "type" to ERROR_GENERIC,
-                                    "message" to cause?.message,
-                                ))
-                            }
-                        }
-
-                        override fun onPlaybackStateChanged(playbackState: Int) {
-                            var type = ""
-                            if (playbackState == Player.STATE_IDLE) {
-                                type = STATE_IDLE
-                            }
-                            if (playbackState == Player.STATE_BUFFERING) {
-                                type = STATE_BUFFERING
-                            }
-                            if (playbackState == Player.STATE_READY) {
-                                type = STATE_READY
-                            }
-                            if (playbackState == Player.STATE_ENDED) {
-                                type = STATE_ENDED
-                            }
-
-                            this@BilisoundPlayerModule.sendEvent(EVENT_PLAYBACK_STATE_CHANGE, bundleOf(
-                                "type" to type,
-                            ))
-                        }
-                    }
-                )
+                getController().addListener(listener)
             }
         }
 
-        OnStopObserving {}
+        OnStopObserving {
+            mainHandler.post {
+                getController().removeListener(listener)
+            }
+        }
 
         AsyncFunction("play") { promise: Promise ->
             mainHandler.post {
@@ -396,5 +347,58 @@ class BilisoundPlayerModule : Module() {
         }
 
         Events("onPlaybackStateChange")
+    }
+
+    private val listener = object : Player.Listener {
+        override fun onPlayerError(error: PlaybackException) {
+            val cause = error.cause
+            if (cause is HttpDataSource.HttpDataSourceException) {
+                // An HTTP error occurred.
+                val httpError = cause
+                // It's possible to find out more about the error both by casting and by querying
+                // the cause.
+                if (httpError is HttpDataSource.InvalidResponseCodeException) {
+                    // Cast to InvalidResponseCodeException and retrieve the response code, message
+                    // and headers.
+                    this@BilisoundPlayerModule.sendEvent(EVENT_PLAYBACK_ERROR, bundleOf(
+                        "type" to ERROR_BAD_HTTP_STATUS_CODE,
+                        "message" to httpError.message,
+                        "code" to httpError.responseCode
+                    ))
+                } else {
+                    // Try calling httpError.getCause() to retrieve the underlying cause, although
+                    // note that it may be null.
+                    this@BilisoundPlayerModule.sendEvent(EVENT_PLAYBACK_ERROR, bundleOf(
+                        "type" to ERROR_NETWORK_FAILURE,
+                        "message" to httpError.message,
+                    ))
+                }
+            } else {
+                this@BilisoundPlayerModule.sendEvent(EVENT_PLAYBACK_ERROR, bundleOf(
+                    "type" to ERROR_GENERIC,
+                    "message" to cause?.message,
+                ))
+            }
+        }
+
+        override fun onPlaybackStateChanged(playbackState: Int) {
+            var type = ""
+            if (playbackState == Player.STATE_IDLE) {
+                type = STATE_IDLE
+            }
+            if (playbackState == Player.STATE_BUFFERING) {
+                type = STATE_BUFFERING
+            }
+            if (playbackState == Player.STATE_READY) {
+                type = STATE_READY
+            }
+            if (playbackState == Player.STATE_ENDED) {
+                type = STATE_ENDED
+            }
+
+            this@BilisoundPlayerModule.sendEvent(EVENT_PLAYBACK_STATE_CHANGE, bundleOf(
+                "type" to type,
+            ))
+        }
     }
 }

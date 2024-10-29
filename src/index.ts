@@ -1,4 +1,4 @@
-import BilisoundPlayerModule from "./BilisoundPlayerModule";
+import { BilisoundPlayerModule } from "./BilisoundPlayerModule";
 import { PlaybackProgress, TrackData, TrackDataInternal } from "./types";
 import { toTrackDataInternal } from "./utils";
 
