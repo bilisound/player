@@ -1,24 +1,16 @@
 import * as BilisoundPlayer from "bilisound-player";
-import { addListener } from "bilisound-player/events";
+import { useEvents } from "bilisound-player/hooks/useEvents";
 import { useProgress } from "bilisound-player/hooks/useProgress";
-import { useEffect } from "react";
 import { Button, StyleSheet, Text, View } from "react-native";
 
 export default function App() {
-  useEffect(() => {
-    const handler1 = addListener("onPlaybackError", (e) => {
-      console.log("onPlaybackError", e);
-    });
+  useEvents("onPlaybackError", (e) => {
+    console.log("onPlaybackError", e);
+  });
 
-    const handler2 = addListener("onPlaybackStateChange", (e) => {
-      console.log("onPlaybackStateChange", e);
-    });
-
-    return () => {
-      handler1.remove();
-      handler2.remove();
-    };
-  }, []);
+  useEvents("onPlaybackStateChange", (e) => {
+    console.log("onPlaybackStateChange", e);
+  });
 
   async function handleGetAllTracks() {
     const result = await BilisoundPlayer.getTracks();
