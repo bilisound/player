@@ -1,7 +1,23 @@
 import * as BilisoundPlayer from "bilisound-player";
 import { useEvents } from "bilisound-player/hooks/useEvents";
 import { useProgress } from "bilisound-player/hooks/useProgress";
-import { Button, StyleSheet, Text, View } from "react-native";
+import { Button, StyleSheet, Text, ToastAndroid, View } from "react-native";
+
+import { getBilisoundResourceUrl, getVideoUrl } from "~/api/bilisound";
+
+async function addBiliTrack(id: string, episode = 1) {
+  const res = await getBilisoundResourceUrl({ id, episode });
+  console.log(res);
+  await BilisoundPlayer.addTracks([
+    {
+      uri: res.url,
+      httpHeaders: {
+        referer: getVideoUrl(id, episode),
+      },
+    },
+  ]);
+  ToastAndroid.show("添加成功：" + id + ", " + episode, 5000);
+}
 
 export default function App() {
   useEvents("onPlaybackError", (e) => {
@@ -37,14 +53,15 @@ export default function App() {
         title="Add Tracks"
       />
       <Button
-        onPress={async () =>
-          await BilisoundPlayer.addTrack({
-            uri: "https://assets.tcdww.cn/website/test/01%20TIME.m4a",
-            httpHeaders: {
-              "User-Agent": "Mozilla/5.0",
-            },
-          })
-        }
+        onPress={async () => {
+          await addBiliTrack("BV1yJ411j7F2");
+          // await BilisoundPlayer.addTrack({
+          //   uri: "https://assets.tcdww.cn/website/test/01%20TIME.m4a",
+          //   httpHeaders: {
+          //     "User-Agent": "Mozilla/5.0"
+          //   }
+          // });
+        }}
         title="Add another"
       />
       <Button

@@ -345,8 +345,6 @@ class BilisoundPlayerModule : Module() {
                 }
             }
         }
-
-        Events("onPlaybackStateChange")
     }
 
     private val listener = object : Player.Listener {

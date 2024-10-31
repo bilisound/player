@@ -28,7 +28,7 @@ class BilisoundPlaybackService : MediaSessionService() {
         val httpDataSourceFactory = DataSource.Factory {
             DefaultHttpDataSource.Factory()
                 .setDefaultRequestProperties(mapOf(
-                    "User-Agent" to "BiliSound Android App"
+                    "User-Agent" to "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36"
                 ))
                 .createDataSource()
                 .apply {
