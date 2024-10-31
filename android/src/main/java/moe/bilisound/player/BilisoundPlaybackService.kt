@@ -14,11 +14,11 @@ import androidx.media3.session.MediaSessionService
 import org.json.JSONObject
 import java.util.concurrent.Executor
 
-class PlaybackService : MediaSessionService() {
+class BilisoundPlaybackService : MediaSessionService() {
     private var mediaSession: MediaSession? = null
     private val mainThreadExecutor = MainThreadExecutor()
 
-    val TAG = "PlaybackService"
+    val TAG = "BilisoundPlaybackService"
 
     // Create your Player and MediaSession in the onCreate lifecycle event
     @OptIn(UnstableApi::class) override fun onCreate() {

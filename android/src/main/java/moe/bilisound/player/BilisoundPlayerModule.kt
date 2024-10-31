@@ -46,7 +46,7 @@ class BilisoundPlayerModule : Module() {
         OnCreate {
             mainHandler.post {
                 val sessionToken =
-                    SessionToken(context, ComponentName(context, PlaybackService::class.java))
+                    SessionToken(context, ComponentName(context, BilisoundPlaybackService::class.java))
                 controllerFuture = MediaController.Builder(context, sessionToken).buildAsync()
                 controllerFuture!!.addListener(
                     {

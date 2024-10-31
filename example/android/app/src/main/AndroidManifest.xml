@@ -18,7 +18,7 @@
   <application android:name=".MainApplication" android:label="@string/app_name" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round" android:allowBackup="true" android:theme="@style/AppTheme">
     <!-- custom added start -->
     <service
-            android:name="moe.bilisound.player.PlaybackService"
+            android:name="moe.bilisound.player.BilisoundPlaybackService"
             android:foregroundServiceType="mediaPlayback"
             android:exported="false">
       <intent-filter>
