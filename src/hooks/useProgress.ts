@@ -15,11 +15,20 @@ let currentProgress: PlaybackProgress = {
   buffered: 0,
 };
 let intervalId: any | null = null;
+let currentId = 0;
 
 const startFetchingProgress = () => {
   if (intervalId) return; // 防止重复启动
 
+  const newId = currentId + 1;
+  currentId = newId;
   intervalId = setInterval(async () => {
+    // todo 如果捕捉不到这种情况就删除
+    if (currentId !== newId) {
+      console.warn("发生定时任务重复执行的情况！");
+      return;
+    }
+
     previousProgress = currentProgress;
     const result = await getProgress();
     if (

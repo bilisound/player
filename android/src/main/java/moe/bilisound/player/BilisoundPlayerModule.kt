@@ -153,6 +153,7 @@ class BilisoundPlayerModule : Module() {
         AsyncFunction("setSpeed") { speed: Float, retainPitch: Boolean, promise: Promise ->
             mainHandler.post {
                 try {
+                    Log.d(TAG, "用户尝试调整播放速度。speed: $speed, retainPitch: $retainPitch")
                     val controller = getController()
                     controller.playbackParameters = PlaybackParameters(
                         speed,
@@ -160,7 +161,7 @@ class BilisoundPlayerModule : Module() {
                     )
                     promise.resolve()
                 } catch (e: Exception) {
-                    promise.reject("PLAYER_ERROR", "无法调整播放进度 (${e.message})", e)
+                    promise.reject("PLAYER_ERROR", "无法调整播放速度 (${e.message})", e)
                 }
             }
         }

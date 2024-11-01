@@ -3,14 +3,23 @@ import { useEvents } from "bilisound-player/hooks/useEvents";
 import { useProgress } from "bilisound-player/hooks/useProgress";
 import { Button, StyleSheet, Text, ToastAndroid, View } from "react-native";
 
-import { getBilisoundResourceUrl, getVideoUrl } from "~/api/bilisound";
+import {
+  getBilisoundMetadata,
+  getBilisoundResourceUrl,
+  getVideoUrl,
+} from "~/api/bilisound";
 
 async function addBiliTrack(id: string, episode = 1) {
+  const info = await getBilisoundMetadata({ id });
   const res = await getBilisoundResourceUrl({ id, episode });
   console.log(res);
   await BilisoundPlayer.addTracks([
     {
       uri: res.url,
+      title: info.data.title,
+      artist: info.data.owner.name,
+      artworkUri: info.data.pic,
+      duration: info.data.pages[episode - 1].duration,
       httpHeaders: {
         referer: getVideoUrl(id, episode),
       },
@@ -52,18 +61,32 @@ export default function App() {
         }
         title="Add Tracks"
       />
-      <Button
-        onPress={async () => {
-          await addBiliTrack("BV1yJ411j7F2");
-          // await BilisoundPlayer.addTrack({
-          //   uri: "https://assets.tcdww.cn/website/test/01%20TIME.m4a",
-          //   httpHeaders: {
-          //     "User-Agent": "Mozilla/5.0"
-          //   }
-          // });
-        }}
-        title="Add another"
-      />
+      <View style={styles.row}>
+        <Button
+          onPress={async () => {
+            await addBiliTrack("BV1yJ411j7F2");
+          }}
+          title="Add 1"
+        />
+        <Button
+          onPress={async () => {
+            await addBiliTrack("BV1yJ411j7F2", 2);
+          }}
+          title="Add 2"
+        />
+        <Button
+          onPress={async () => {
+            await addBiliTrack("BV1kw411t7iy");
+          }}
+          title="Add 3"
+        />
+        <Button
+          onPress={async () => {
+            await addBiliTrack("BV1NH4y1c723");
+          }}
+          title="Add 4"
+        />
+      </View>
       <Button
         onPress={async () =>
           await BilisoundPlayer.replaceTrack(1, {
@@ -90,17 +113,23 @@ export default function App() {
         />
       </View>
       <View style={styles.row}>
-        <Button onPress={() => BilisoundPlayer.setSpeed(1)} title="Speed 1" />
         <Button
-          onPress={() => BilisoundPlayer.setSpeed(0.8, false)}
-          title="0.8"
+          onPress={() => BilisoundPlayer.setSpeed(50 / 60, false)}
+          title="50 / 60"
         />
-        <Button onPress={() => BilisoundPlayer.setSpeed(0.8)} title="0.8 R" />
+        <Button
+          onPress={() => BilisoundPlayer.setSpeed(0.9, false)}
+          title="0.9"
+        />
+        <Button onPress={() => BilisoundPlayer.setSpeed(1)} title="1" />
+        <Button
+          onPress={() => BilisoundPlayer.setSpeed(1.1, false)}
+          title="1.1"
+        />
         <Button
           onPress={() => BilisoundPlayer.setSpeed(1.2, false)}
           title="1.2"
         />
-        <Button onPress={() => BilisoundPlayer.setSpeed(1.2)} title="1.2 R" />
       </View>
       <Button
         onPress={() => BilisoundPlayer.deleteTracks([2, 1])}
