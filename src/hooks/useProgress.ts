@@ -14,49 +14,38 @@ let currentProgress: PlaybackProgress = {
   position: 0,
   buffered: 0,
 };
-let intervalId: any | null = null;
-let currentId = 0;
 
-const startFetchingProgress = () => {
-  if (intervalId) return; // 防止重复启动
+let hasLooping = false;
 
-  const newId = currentId + 1;
-  currentId = newId;
-  intervalId = setInterval(async () => {
-    // todo 如果捕捉不到这种情况就删除
-    if (currentId !== newId) {
-      console.warn("发生定时任务重复执行的情况！");
-      return;
-    }
-
-    previousProgress = currentProgress;
-    const result = await getProgress();
-    if (
-      previousProgress.duration !== result.duration ||
-      previousProgress.position !== result.position ||
-      previousProgress.buffered !== result.buffered
-    ) {
-      currentProgress = result;
-      progressListeners.forEach((listener) => listener());
-    }
-  }, 100);
-};
-
-const stopFetchingProgress = () => {
-  if (intervalId) {
-    clearInterval(intervalId);
-    intervalId = null;
+const loop = async () => {
+  previousProgress = currentProgress;
+  const result = await getProgress();
+  if (
+    previousProgress.duration !== result.duration ||
+    previousProgress.position !== result.position ||
+    previousProgress.buffered !== result.buffered
+  ) {
+    currentProgress = result;
+    // console.log(result);
+    progressListeners.forEach((listener) => listener());
   }
+  if (progressListeners.size <= 0) {
+    // console.log("Looping exit!!");
+    hasLooping = false;
+    return;
+  }
+  return requestAnimationFrame(loop);
 };
 
 const subscribe = (listener: () => void) => {
   progressListeners.add(listener);
-  startFetchingProgress();
+  if (!hasLooping) {
+    hasLooping = true;
+    // console.log("Looping enter!!");
+    loop();
+  }
   return () => {
     progressListeners.delete(listener);
-    if (progressListeners.size <= 0) {
-      stopFetchingProgress();
-    }
   };
 };
 

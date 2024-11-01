@@ -22,6 +22,20 @@ export function pause(): Promise<void> {
 }
 
 /**
+ * 上一首
+ */
+export function prev(): Promise<void> {
+  return BilisoundPlayerModule.prev();
+}
+
+/**
+ * 下一首
+ */
+export function next(): Promise<void> {
+  return BilisoundPlayerModule.next();
+}
+
+/**
  * 切换播放/暂停状态
  */
 export function toggle(): Promise<void> {

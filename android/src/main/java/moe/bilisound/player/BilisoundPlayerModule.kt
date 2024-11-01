@@ -103,6 +103,30 @@ class BilisoundPlayerModule : Module() {
             }
         }
 
+        AsyncFunction("prev") { promise: Promise ->
+            mainHandler.post {
+                try {
+                    val controller = getController()
+                    controller.seekToPrevious()
+                    promise.resolve(null)
+                } catch (e: Exception) {
+                    promise.reject("PLAYER_ERROR", "无法执行暂停操作 (${e.message})", e)
+                }
+            }
+        }
+
+        AsyncFunction("next") { promise: Promise ->
+            mainHandler.post {
+                try {
+                    val controller = getController()
+                    controller.seekToNext()
+                    promise.resolve(null)
+                } catch (e: Exception) {
+                    promise.reject("PLAYER_ERROR", "无法执行暂停操作 (${e.message})", e)
+                }
+            }
+        }
+
         AsyncFunction("toggle") { promise: Promise ->
             mainHandler.post {
                 try {
@@ -148,6 +172,32 @@ class BilisoundPlayerModule : Module() {
                 try {
                     val controller = getController()
                     promise.resolve(controller.isPlaying)
+                } catch (e: Exception) {
+                    promise.reject("PLAYER_ERROR", "无法获取播放状态 (${e.message})", e)
+                }
+            }
+        }
+
+        AsyncFunction("getCurrentTrack") { promise: Promise ->
+            mainHandler.post {
+                try {
+                    val controller = getController()
+                    val mediaItem = controller.currentMediaItem
+                    if (mediaItem == null) {
+                        promise.resolve(null)
+                        return@post
+                    }
+                    val metadata = mediaItem.mediaMetadata
+
+                    promise.resolve(bundleOf(
+                        "uri" to mediaItem.localConfiguration?.uri?.toString(),
+                        "artworkUri" to metadata.artworkUri?.toString(),
+                        "title" to metadata.title,
+                        "artist" to metadata.artist,
+                        "duration" to (metadata.durationMs?.div(1000) ?: 0),
+                        "httpHeaders" to metadata.extras?.getString("httpHeaders"),
+                        "extendedData" to metadata.extras?.getString("extendedData")
+                    ))
                 } catch (e: Exception) {
                     promise.reject("PLAYER_ERROR", "无法获取播放状态 (${e.message})", e)
                 }

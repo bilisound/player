@@ -30,6 +30,12 @@ async function addBiliTrack(id: string, episode = 1) {
   ToastAndroid.show("添加成功：" + id + ", " + episode, 5000);
 }
 
+function RealTimeProgress() {
+  const progress = useProgress();
+
+  return <Text>{`Progress:\n${JSON.stringify(progress, null, 2)}`}</Text>;
+}
+
 export function Control() {
   useEvents("onPlaybackError", (e) => {
     console.log("onPlaybackError", e);
@@ -44,13 +50,12 @@ export function Control() {
     console.log(JSON.stringify(result, null, 4));
   }
 
-  const progress = useProgress();
   const playbackState = usePlaybackState();
   const isPlaying = useIsPlaying();
 
   return (
     <View style={styles.container}>
-      <Text>{`Real time Progress: ${JSON.stringify(progress)}`}</Text>
+      <RealTimeProgress />
       <Text>{`Playback state: ${playbackState}`}</Text>
       <Text>{`Playing: ${isPlaying}`}</Text>
       <Button
@@ -69,13 +74,13 @@ export function Control() {
       <View style={styles.row}>
         <Button
           onPress={async () => {
-            await addBiliTrack("BV1yJ411j7F2");
+            await addBiliTrack("BV1b84y187WC");
           }}
           title="Add 1"
         />
         <Button
           onPress={async () => {
-            await addBiliTrack("BV1yJ411j7F2", 2);
+            await addBiliTrack("BV1Bx41187eP");
           }}
           title="Add 2"
         />
@@ -103,19 +108,10 @@ export function Control() {
         title="Replace index 1"
       />
       <View style={styles.row}>
-        <Button onPress={() => BilisoundPlayer.play()} title="Play" />
+        <Button onPress={() => BilisoundPlayer.prev()} title="Prev" />
         <Button onPress={() => BilisoundPlayer.toggle()} title="Toggle" />
+        <Button onPress={() => BilisoundPlayer.next()} title="Next" />
         <Button onPress={() => BilisoundPlayer.seek(20)} title="seek 20 秒" />
-        <Button
-          onPress={async () => {
-            const begin = performance.now();
-            const result = await BilisoundPlayer.getProgress();
-            const end = performance.now();
-            console.log(result);
-            console.log(end - begin + "ms");
-          }}
-          title="查进度"
-        />
       </View>
       <View style={styles.row}>
         <Button

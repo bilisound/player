@@ -14,8 +14,9 @@ export function Playlist() {
             android_ripple={{ color: "#dddddd" }}
             style={{ padding: 8 }}
             onPress={() => jump(i)}
+            key={i}
           >
-            <Text key={i}>{e.title}</Text>
+            <Text>{e.title}</Text>
           </Pressable>
         );
       })}
