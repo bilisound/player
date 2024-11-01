@@ -54,4 +54,5 @@ export interface PlaybackErrorEvent {
 export interface EventList {
   onPlaybackStateChange: PlaybackStateChangeEvent;
   onPlaybackError: PlaybackErrorEvent;
+  onQueueChange: null;
 }

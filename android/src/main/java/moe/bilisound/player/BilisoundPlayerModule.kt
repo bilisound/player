@@ -41,7 +41,7 @@ class BilisoundPlayerModule : Module() {
     override fun definition() = ModuleDefinition {
         Name("BilisoundPlayer")
 
-        Events(EVENT_PLAYBACK_STATE_CHANGE, EVENT_PLAYBACK_ERROR)
+        Events(EVENT_PLAYBACK_STATE_CHANGE, EVENT_PLAYBACK_ERROR, EVENT_QUEUE_CHANGE)
 
         OnCreate {
             mainHandler.post {
@@ -174,6 +174,7 @@ class BilisoundPlayerModule : Module() {
                     val controller = getController()
                     controller.addMediaItem(mediaItem)
                     promise.resolve()
+                    firePlaylistChangeEvent()
                 } catch (e: Exception) {
                     promise.reject("PLAYER_ERROR", "无法添加单首曲目 (${e.message})", e)
                 }
@@ -191,6 +192,7 @@ class BilisoundPlayerModule : Module() {
                     controller.addMediaItem(index, mediaItem)
                     
                     promise.resolve()
+                    firePlaylistChangeEvent()
                 } catch (e: Exception) {
                     promise.reject("PLAYER_ERROR", "无法在指定位置添加曲目 (${e.message})", e)
                 }
@@ -214,6 +216,7 @@ class BilisoundPlayerModule : Module() {
                     val controller = getController()
                     controller.addMediaItems(mediaItems)
                     promise.resolve()
+                    firePlaylistChangeEvent()
                 } catch (e: Exception) {
                     promise.reject("PLAYER_ERROR", "无法批量添加曲目 (${e.message})", e)
                 }
@@ -237,6 +240,7 @@ class BilisoundPlayerModule : Module() {
                     val controller = getController()
                     controller.addMediaItems(index, mediaItems)
                     promise.resolve()
+                    firePlaylistChangeEvent()
                 } catch (e: Exception) {
                     promise.reject("PLAYER_ERROR", "无法在指定位置批量添加曲目 (${e.message})", e)
                 }
@@ -286,6 +290,7 @@ class BilisoundPlayerModule : Module() {
                     controller.replaceMediaItem(index, mediaItem)
 
                     promise.resolve()
+                    firePlaylistChangeEvent()
                 } catch (e: Exception) {
                     promise.reject("PLAYER_ERROR", "无法修改指定曲目信息 (${e.message})", e)
                 }
@@ -307,6 +312,7 @@ class BilisoundPlayerModule : Module() {
                     controller.removeMediaItem(index)
 
                     promise.resolve()
+                    firePlaylistChangeEvent()
                 } catch (e: Exception) {
                     promise.reject("PLAYER_ERROR", "无法删除指定曲目 (${e.message})", e)
                 }
@@ -341,11 +347,16 @@ class BilisoundPlayerModule : Module() {
                     }
                     
                     promise.resolve()
+                    firePlaylistChangeEvent()
                 } catch (e: Exception) {
                     promise.reject("PLAYER_ERROR", "无法删除指定曲目 (${e.message})", e)
                 }
             }
         }
+    }
+
+    private fun firePlaylistChangeEvent() {
+        this@BilisoundPlayerModule.sendEvent(EVENT_QUEUE_CHANGE, null)
     }
 
     private val listener = object : Player.Listener {
