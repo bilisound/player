@@ -41,7 +41,12 @@ class BilisoundPlayerModule : Module() {
     override fun definition() = ModuleDefinition {
         Name("BilisoundPlayer")
 
-        Events(EVENT_PLAYBACK_STATE_CHANGE, EVENT_PLAYBACK_ERROR, EVENT_QUEUE_CHANGE, EVENT_IS_PLAYING_CHANGE)
+        Events(
+            EVENT_PLAYBACK_STATE_CHANGE,
+            EVENT_PLAYBACK_ERROR,
+            EVENT_QUEUE_CHANGE,
+            EVENT_IS_PLAYING_CHANGE
+        )
 
         OnCreate {
             mainHandler.post {
