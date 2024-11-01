@@ -37,6 +37,14 @@ export function seek(to: number): Promise<void> {
 }
 
 /**
+ * 跳转到队列中指定的曲目
+ * @param to
+ */
+export function jump(to: number): Promise<void> {
+  return BilisoundPlayerModule.jump(to);
+}
+
+/**
  * 获取播放进度
  */
 export async function getProgress(): Promise<PlaybackProgress> {

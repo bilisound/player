@@ -119,7 +119,7 @@ class BilisoundPlayerModule : Module() {
             }
         }
 
-        AsyncFunction("seek")  { to: Long, promise: Promise ->
+        AsyncFunction("seek") { to: Long, promise: Promise ->
             mainHandler.post {
                 try {
                     val controller = getController()
@@ -127,6 +127,18 @@ class BilisoundPlayerModule : Module() {
                     promise.resolve()
                 } catch (e: Exception) {
                     promise.reject("PLAYER_ERROR", "无法调整播放进度 (${e.message})", e)
+                }
+            }
+        }
+
+        AsyncFunction("jump") { to: Int, promise: Promise ->
+            mainHandler.post {
+                try {
+                    val controller = getController()
+                    controller.seekTo(to, 0)
+                    promise.resolve()
+                } catch (e: Exception) {
+                    promise.reject("PLAYER_ERROR", "无法调整当前播放曲目 (${e.message})", e)
                 }
             }
         }
