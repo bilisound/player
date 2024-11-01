@@ -79,6 +79,15 @@ export async function getIsPlaying(): Promise<boolean> {
   return BilisoundPlayerModule.getIsPlaying();
 }
 
+export async function getCurrentTrack(): Promise<any> {
+  const e: TrackDataInternal = await BilisoundPlayerModule.getCurrentTrack();
+  return {
+    ...e,
+    httpHeaders: e.httpHeaders ? JSON.parse(e.httpHeaders) : undefined,
+    extendedData: e.extendedData ? JSON.parse(e.extendedData) : undefined,
+  } as TrackData;
+}
+
 /**
  * 调整播放速度
  * @param speed 播放速度

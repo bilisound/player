@@ -71,6 +71,14 @@ export function Control() {
         }
         title="Add Tracks"
       />
+      <Button
+        onPress={async () =>
+          console.log(
+            JSON.stringify(await BilisoundPlayer.getCurrentTrack(), null, 2),
+          )
+        }
+        title="Console Log Current Track"
+      />
       <View style={styles.row}>
         <Button
           onPress={async () => {
