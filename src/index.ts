@@ -1,5 +1,10 @@
 import { BilisoundPlayerModule } from "./BilisoundPlayerModule";
-import { PlaybackProgress, TrackData, TrackDataInternal } from "./types";
+import {
+  PlaybackProgress,
+  PlaybackState,
+  TrackData,
+  TrackDataInternal,
+} from "./types";
 import { toTrackDataInternal } from "./utils";
 
 /**
@@ -36,6 +41,20 @@ export function seek(to: number): Promise<void> {
  */
 export async function getProgress(): Promise<PlaybackProgress> {
   return JSON.parse(await BilisoundPlayerModule.getProgress());
+}
+
+/**
+ * 获取播放状态
+ */
+export async function getPlaybackState(): Promise<PlaybackState> {
+  return BilisoundPlayerModule.getPlaybackState();
+}
+
+/**
+ * 获取是否正在播放
+ */
+export async function getIsPlaying(): Promise<boolean> {
+  return BilisoundPlayerModule.getIsPlaying();
 }
 
 /**

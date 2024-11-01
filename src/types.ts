@@ -51,8 +51,13 @@ export interface PlaybackErrorEvent {
   code?: number;
 }
 
+export interface IsPlayingChangeEvent {
+  isPlaying: boolean;
+}
+
 export interface EventList {
   onPlaybackStateChange: PlaybackStateChangeEvent;
   onPlaybackError: PlaybackErrorEvent;
   onQueueChange: null;
+  onIsPlayingChange: IsPlayingChangeEvent;
 }

@@ -1,5 +1,7 @@
 import * as BilisoundPlayer from "bilisound-player";
 import { useEvents } from "bilisound-player/hooks/useEvents";
+import { useIsPlaying } from "bilisound-player/hooks/useIsPlaying";
+import { usePlaybackState } from "bilisound-player/hooks/usePlaybackState";
 import { useProgress } from "bilisound-player/hooks/useProgress";
 import { Button, StyleSheet, Text, ToastAndroid, View } from "react-native";
 
@@ -43,9 +45,14 @@ export function Control() {
   }
 
   const progress = useProgress();
+  const playbackState = usePlaybackState();
+  const isPlaying = useIsPlaying();
+
   return (
     <View style={styles.container}>
       <Text>{`Real time Progress: ${JSON.stringify(progress)}`}</Text>
+      <Text>{`Playback state: ${playbackState}`}</Text>
+      <Text>{`Playing: ${isPlaying}`}</Text>
       <Button
         onPress={async () =>
           await BilisoundPlayer.addTracks([

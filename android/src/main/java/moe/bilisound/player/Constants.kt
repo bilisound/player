@@ -19,6 +19,11 @@ const val EVENT_PLAYBACK_ERROR = "onPlaybackError"
  */
 const val EVENT_QUEUE_CHANGE = "onQueueChange"
 
+/**
+ * 是否播放变更
+ */
+const val EVENT_IS_PLAYING_CHANGE = "onIsPlayingChange"
+
 // ============================================================================
 // 播放状态
 // ============================================================================

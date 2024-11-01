@@ -41,7 +41,7 @@ class BilisoundPlayerModule : Module() {
     override fun definition() = ModuleDefinition {
         Name("BilisoundPlayer")
 
-        Events(EVENT_PLAYBACK_STATE_CHANGE, EVENT_PLAYBACK_ERROR, EVENT_QUEUE_CHANGE)
+        Events(EVENT_PLAYBACK_STATE_CHANGE, EVENT_PLAYBACK_ERROR, EVENT_QUEUE_CHANGE, EVENT_IS_PLAYING_CHANGE)
 
         OnCreate {
             mainHandler.post {
@@ -127,6 +127,34 @@ class BilisoundPlayerModule : Module() {
                     promise.resolve()
                 } catch (e: Exception) {
                     promise.reject("PLAYER_ERROR", "无法调整播放进度 (${e.message})", e)
+                }
+            }
+        }
+
+        AsyncFunction("getIsPlaying") { promise: Promise ->
+            mainHandler.post {
+                try {
+                    val controller = getController()
+                    promise.resolve(controller.isPlaying)
+                } catch (e: Exception) {
+                    promise.reject("PLAYER_ERROR", "无法获取播放状态 (${e.message})", e)
+                }
+            }
+        }
+
+        AsyncFunction("getPlaybackState") { promise: Promise ->
+            mainHandler.post {
+                try {
+                    val controller = getController()
+                    when (controller.playbackState) {
+                        Player.STATE_IDLE -> promise.resolve(STATE_IDLE)
+                        Player.STATE_BUFFERING -> promise.resolve(STATE_BUFFERING)
+                        Player.STATE_READY -> promise.resolve(STATE_READY)
+                        Player.STATE_ENDED -> promise.resolve(STATE_ENDED)
+                        else -> promise.resolve(STATE_IDLE)
+                    }
+                } catch (e: Exception) {
+                    promise.reject("PLAYER_ERROR", "无法获取播放状态 (${e.message})", e)
                 }
             }
         }
@@ -392,7 +420,7 @@ class BilisoundPlayerModule : Module() {
         }
 
         override fun onPlaybackStateChanged(playbackState: Int) {
-            var type = ""
+            var type = STATE_IDLE
             if (playbackState == Player.STATE_IDLE) {
                 type = STATE_IDLE
             }
@@ -408,6 +436,12 @@ class BilisoundPlayerModule : Module() {
 
             this@BilisoundPlayerModule.sendEvent(EVENT_PLAYBACK_STATE_CHANGE, bundleOf(
                 "type" to type,
+            ))
+        }
+
+        override fun onIsPlayingChanged(isPlaying: Boolean) {
+            this@BilisoundPlayerModule.sendEvent(EVENT_IS_PLAYING_CHANGE, bundleOf(
+                "isPlaying" to getController().isPlaying
             ))
         }
     }
