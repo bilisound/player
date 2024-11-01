@@ -51,6 +51,10 @@ export interface PlaybackErrorEvent {
   code?: number;
 }
 
+export interface TrackChangeEvent {
+  track: TrackDataInternal | null;
+}
+
 export interface IsPlayingChangeEvent {
   isPlaying: boolean;
 }
@@ -59,5 +63,6 @@ export interface EventList {
   onPlaybackStateChange: PlaybackStateChangeEvent;
   onPlaybackError: PlaybackErrorEvent;
   onQueueChange: null;
+  onTrackChange: TrackChangeEvent;
   onIsPlayingChange: IsPlayingChangeEvent;
 }

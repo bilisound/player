@@ -79,8 +79,12 @@ export async function getIsPlaying(): Promise<boolean> {
   return BilisoundPlayerModule.getIsPlaying();
 }
 
-export async function getCurrentTrack(): Promise<any> {
-  const e: TrackDataInternal = await BilisoundPlayerModule.getCurrentTrack();
+export async function getCurrentTrack() {
+  const e: TrackDataInternal | null =
+    await BilisoundPlayerModule.getCurrentTrack();
+  if (!e) {
+    return undefined;
+  }
   return toTrackData(e);
 }
 

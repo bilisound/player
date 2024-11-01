@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button, StyleSheet, Text, View } from "react-native";
+import { Button, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { Control } from "~/components/Control";
 import { Playlist } from "~/components/Playlist";
@@ -10,15 +10,17 @@ export default function App() {
   const [page, setPage] = useState<Pages>("control");
 
   return (
-    <View style={styles.container}>
-      <Text>Music Player</Text>
-      <View style={styles.row}>
-        <Button onPress={() => setPage("control")} title="Control" />
-        <Button onPress={() => setPage("playlist")} title="Playlist" />
+    <ScrollView>
+      <View style={styles.container}>
+        <Text>Music Player</Text>
+        <View style={styles.row}>
+          <Button onPress={() => setPage("control")} title="Control" />
+          <Button onPress={() => setPage("playlist")} title="Playlist" />
+        </View>
+        {page === "control" && <Control />}
+        {page === "playlist" && <Playlist />}
       </View>
-      {page === "control" && <Control />}
-      {page === "playlist" && <Playlist />}
-    </View>
+    </ScrollView>
   );
 }
 

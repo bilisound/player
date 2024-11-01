@@ -1,4 +1,5 @@
 import * as BilisoundPlayer from "bilisound-player";
+import { useCurrentTrack } from "bilisound-player/hooks/useCurrentTrack";
 import { useEvents } from "bilisound-player/hooks/useEvents";
 import { useIsPlaying } from "bilisound-player/hooks/useIsPlaying";
 import { usePlaybackState } from "bilisound-player/hooks/usePlaybackState";
@@ -52,12 +53,14 @@ export function Control() {
 
   const playbackState = usePlaybackState();
   const isPlaying = useIsPlaying();
+  const currentTrack = useCurrentTrack();
 
   return (
     <View style={styles.container}>
       <RealTimeProgress />
-      <Text>{`Playback state: ${playbackState}`}</Text>
+      <Text>{`Playback State: ${playbackState}`}</Text>
       <Text>{`Playing: ${isPlaying}`}</Text>
+      <Text>{`Current Track: ${JSON.stringify(currentTrack, null, 2)}`}</Text>
       <Button
         onPress={async () =>
           await BilisoundPlayer.addTracks([

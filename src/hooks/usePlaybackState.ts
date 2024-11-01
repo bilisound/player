@@ -1,9 +1,8 @@
 import { addListener } from "../events";
 import { getPlaybackState } from "../index";
-import { PlaybackState } from "../types";
 import { createSubscriptionStore } from "../utils";
 
-export const usePlaybackState = createSubscriptionStore<PlaybackState>({
+export const usePlaybackState = createSubscriptionStore({
   eventName: "onPlaybackStateChange",
   fetchData: getPlaybackState,
   addListener,
