@@ -16,12 +16,7 @@ export default function App() {
         <Button onPress={() => setPage("control")} title="Control" />
         <Button onPress={() => setPage("playlist")} title="Playlist" />
       </View>
-      {page === "control" && (
-        <View style={{ flex: 1, gap: 8 }}>
-          <Control />
-          <Playlist />
-        </View>
-      )}
+      {page === "control" && <Control />}
       {page === "playlist" && <Playlist />}
     </View>
   );
