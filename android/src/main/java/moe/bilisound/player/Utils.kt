@@ -2,6 +2,7 @@ package moe.bilisound.player
 
 import android.net.Uri
 import android.os.Bundle
+import androidx.core.os.bundleOf
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import kotlinx.serialization.json.Json
@@ -42,4 +43,18 @@ fun createMediaItemFromTrack(json: String): MediaItem {
         .build()
 
     return testItem
+}
+
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
+fun mediaItemToBundle(mediaItem: MediaItem): Bundle {
+    val metadata = mediaItem.mediaMetadata
+    return bundleOf(
+        "uri" to mediaItem.localConfiguration?.uri?.toString(),
+        "artworkUri" to metadata.artworkUri?.toString(),
+        "title" to metadata.title,
+        "artist" to metadata.artist,
+        "duration" to (metadata.durationMs?.div(1000) ?: 0),
+        "httpHeaders" to metadata.extras?.getString("httpHeaders"),
+        "extendedData" to metadata.extras?.getString("extendedData")
+    )
 }

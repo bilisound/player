@@ -88,7 +88,7 @@ export function Control() {
         />
         <Button
           onPress={async () => {
-            await addBiliTrack("BV1Bx41187eP");
+            await addBiliTrack("BV1bb4se5ENA");
           }}
           title="Add 2"
         />

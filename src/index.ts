@@ -5,7 +5,7 @@ import {
   TrackData,
   TrackDataInternal,
 } from "./types";
-import { toTrackDataInternal } from "./utils";
+import { toTrackData, toTrackDataInternal } from "./utils";
 
 /**
  * 播放
@@ -81,11 +81,7 @@ export async function getIsPlaying(): Promise<boolean> {
 
 export async function getCurrentTrack(): Promise<any> {
   const e: TrackDataInternal = await BilisoundPlayerModule.getCurrentTrack();
-  return {
-    ...e,
-    httpHeaders: e.httpHeaders ? JSON.parse(e.httpHeaders) : undefined,
-    extendedData: e.extendedData ? JSON.parse(e.extendedData) : undefined,
-  } as TrackData;
+  return toTrackData(e);
 }
 
 /**
@@ -144,11 +140,7 @@ export async function getTracks(): Promise<TrackData[]> {
   const raw = await (BilisoundPlayerModule.getTracks() as Promise<string>);
   const rawData: TrackDataInternal[] = JSON.parse(raw);
   return rawData.map((e) => {
-    return {
-      ...e,
-      httpHeaders: e.httpHeaders ? JSON.parse(e.httpHeaders) : undefined,
-      extendedData: e.extendedData ? JSON.parse(e.extendedData) : undefined,
-    } as TrackData;
+    return toTrackData(e);
   });
 }
 

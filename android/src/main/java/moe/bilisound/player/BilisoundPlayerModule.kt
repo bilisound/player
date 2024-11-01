@@ -45,6 +45,7 @@ class BilisoundPlayerModule : Module() {
             EVENT_PLAYBACK_STATE_CHANGE,
             EVENT_PLAYBACK_ERROR,
             EVENT_QUEUE_CHANGE,
+            EVENT_TRACK_CHANGE,
             EVENT_IS_PLAYING_CHANGE
         )
 
@@ -192,17 +193,7 @@ class BilisoundPlayerModule : Module() {
                         promise.resolve(null)
                         return@post
                     }
-                    val metadata = mediaItem.mediaMetadata
-
-                    promise.resolve(bundleOf(
-                        "uri" to mediaItem.localConfiguration?.uri?.toString(),
-                        "artworkUri" to metadata.artworkUri?.toString(),
-                        "title" to metadata.title,
-                        "artist" to metadata.artist,
-                        "duration" to (metadata.durationMs?.div(1000) ?: 0),
-                        "httpHeaders" to metadata.extras?.getString("httpHeaders"),
-                        "extendedData" to metadata.extras?.getString("extendedData")
-                    ))
+                    promise.resolve(mediaItemToBundle(mediaItem))
                 } catch (e: Exception) {
                     promise.reject("PLAYER_ERROR", "无法获取播放状态 (${e.message})", e)
                 }
@@ -509,6 +500,18 @@ class BilisoundPlayerModule : Module() {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             this@BilisoundPlayerModule.sendEvent(EVENT_IS_PLAYING_CHANGE, bundleOf(
                 "isPlaying" to getController().isPlaying
+            ))
+        }
+
+        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            if (mediaItem == null) {
+                this@BilisoundPlayerModule.sendEvent(EVENT_TRACK_CHANGE, bundleOf(
+                    "track" to null
+                ))
+                return
+            }
+            this@BilisoundPlayerModule.sendEvent(EVENT_TRACK_CHANGE, bundleOf(
+                "track" to mediaItemToBundle(mediaItem)
             ))
         }
     }
