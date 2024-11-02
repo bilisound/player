@@ -1,4 +1,4 @@
-package moe.bilisound.player
+@file:UnstableApi package moe.bilisound.player
 
 import android.content.ComponentName
 import android.content.Context
@@ -12,7 +12,14 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.database.DatabaseProvider
+import androidx.media3.database.StandaloneDatabaseProvider
+import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.HttpDataSource
+import androidx.media3.datasource.cache.NoOpCacheEvictor
+import androidx.media3.datasource.cache.SimpleCache
+import androidx.media3.exoplayer.offline.DownloadManager
+import androidx.media3.exoplayer.offline.DownloadNotificationHelper
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
@@ -23,10 +30,65 @@ import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import org.json.JSONArray
 import org.json.JSONObject
+import java.util.concurrent.Executor
 
 const val TAG = "BilisoundPlayerModule"
 
 class BilisoundPlayerModule : Module() {
+    companion object {
+        private var downloadNotificationHelper: DownloadNotificationHelper? = null
+        @Volatile
+        private var databaseProvider: DatabaseProvider? = null
+        @Volatile
+        private var downloadCache: SimpleCache? = null
+
+        @Synchronized
+        fun getDownloadCache(context: Context): SimpleCache {
+            return downloadCache ?: SimpleCache(
+                context.filesDir,
+                NoOpCacheEvictor(),
+                getDatabaseProvider(context)
+            ).also {
+                downloadCache = it
+            }
+        }
+
+        fun getDatabaseProvider(context: Context): DatabaseProvider {
+            if (databaseProvider == null) {
+                databaseProvider = StandaloneDatabaseProvider(context)
+            }
+            return databaseProvider!!
+        }
+
+        @Synchronized
+        fun getDownloadNotificationHelper(
+            context: Context?
+        ): DownloadNotificationHelper {
+            if (downloadNotificationHelper == null) {
+                downloadNotificationHelper =
+                    DownloadNotificationHelper(context!!, BilisoundDownloadService.DOWNLOAD_NOTIFICATION_CHANNEL_ID)
+            }
+            return downloadNotificationHelper!!
+        }
+
+        fun getDownloadManager(context: Context): DownloadManager {
+            // 使用单例方法替换原来的直接初始化
+            val databaseProvider = getDatabaseProvider(context)
+            val downloadCache = getDownloadCache(context)
+
+            // Create a factory for reading the data from the network.
+            val dataSourceFactory = DefaultHttpDataSource.Factory()
+
+            val downloadExecutor = Executor(Runnable::run)
+
+            // Create the download manager.
+            val downloadManager =
+                DownloadManager(context, databaseProvider, downloadCache, dataSourceFactory, downloadExecutor)
+
+            return downloadManager
+        }
+    }
+
     private val mainHandler = Handler(Looper.getMainLooper())
     private val context: Context
         get() = appContext.reactContext ?: throw Exceptions.ReactContextLost()
