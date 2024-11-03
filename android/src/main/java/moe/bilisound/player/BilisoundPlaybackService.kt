@@ -54,7 +54,7 @@ class BilisoundPlaybackService : MediaSessionService() {
 
         // 创建自定义的 DataSource.Factory 并整合缓存功能
         val dataSourceFactory = CacheDataSource.Factory()
-            .setCache(BilisoundPlayerModule.getDownloadCache(this)) // 确保 downloadCache 已正确初始化
+            .setCache(BilisoundPlayerModule.getDownloadCache(applicationContext)) // 确保 downloadCache 已正确初始化
             .setUpstreamDataSourceFactory {
                 DefaultHttpDataSource.Factory()
                     .setDefaultRequestProperties(

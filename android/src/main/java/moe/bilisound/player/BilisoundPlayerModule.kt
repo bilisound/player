@@ -2,9 +2,11 @@
 
 import android.content.ComponentName
 import android.content.Context
+import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.widget.Toast
 import androidx.annotation.OptIn
 import androidx.core.os.bundleOf
 import androidx.media3.common.MediaItem
@@ -20,6 +22,8 @@ import androidx.media3.datasource.cache.NoOpCacheEvictor
 import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.exoplayer.offline.DownloadManager
 import androidx.media3.exoplayer.offline.DownloadNotificationHelper
+import androidx.media3.exoplayer.offline.DownloadRequest
+import androidx.media3.exoplayer.offline.DownloadService
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
@@ -44,6 +48,7 @@ class BilisoundPlayerModule : Module() {
 
         @Synchronized
         fun getDownloadCache(context: Context): SimpleCache {
+            Log.d(TAG, "缓存初始化！orig: $downloadCache, context: $context")
             return downloadCache ?: SimpleCache(
                 context.filesDir,
                 NoOpCacheEvictor(),
@@ -54,6 +59,7 @@ class BilisoundPlayerModule : Module() {
         }
 
         fun getDatabaseProvider(context: Context): DatabaseProvider {
+            Log.d(TAG, "数据库初始化！orig: $databaseProvider, context: $context")
             if (databaseProvider == null) {
                 databaseProvider = StandaloneDatabaseProvider(context)
             }
@@ -64,6 +70,7 @@ class BilisoundPlayerModule : Module() {
         fun getDownloadNotificationHelper(
             context: Context?
         ): DownloadNotificationHelper {
+            Log.d(TAG, "下载提示初始化！orig: $downloadNotificationHelper, context: $context")
             if (downloadNotificationHelper == null) {
                 downloadNotificationHelper =
                     DownloadNotificationHelper(context!!, BilisoundDownloadService.DOWNLOAD_NOTIFICATION_CHANNEL_ID)
@@ -84,6 +91,8 @@ class BilisoundPlayerModule : Module() {
             // Create the download manager.
             val downloadManager =
                 DownloadManager(context, databaseProvider, downloadCache, dataSourceFactory, downloadExecutor)
+
+            Log.d(TAG, "下载管理器初始化！")
 
             return downloadManager
         }
@@ -500,6 +509,24 @@ class BilisoundPlayerModule : Module() {
                     promise.reject("PLAYER_ERROR", "无法删除指定曲目 (${e.message})", e)
                 }
             }
+        }
+
+        AsyncFunction("testAction1") { promise: Promise ->
+            mainHandler.post {
+                val target = "https://assets.tcdww.cn/website/test/01 逃避 行.m4a"
+                val downloadRequest = DownloadRequest.Builder(target, Uri.parse(target)).build()
+                DownloadService.sendAddDownload(
+                    context,
+                    BilisoundDownloadService::class.java,
+                    downloadRequest,
+                    /* foreground= */ false
+                )
+                val index = getDownloadManager(context).downloadIndex
+                val downloads = index.getDownloads()
+                Toast.makeText(context, "发送了下载请求。${downloads.count}", Toast.LENGTH_LONG).show()
+                promise.resolve()
+            }
+
         }
     }
 

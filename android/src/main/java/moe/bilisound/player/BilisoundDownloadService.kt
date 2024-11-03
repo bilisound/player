@@ -1,5 +1,6 @@
 @file:OptIn(UnstableApi::class) package moe.bilisound.player
 
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.util.Log
 import androidx.annotation.OptIn
@@ -24,10 +25,17 @@ class BilisoundDownloadService
         const val DOWNLOAD_NOTIFICATION_CHANNEL_ID = "notification_channel"
     }
 
-    override fun getDownloadManager(): DownloadManager {
-        return BilisoundPlayerModule.getDownloadManager(this)
+    override fun onCreate() {
+        Log.d(TAG, "创建服务")
+        super.onCreate()
     }
 
+    override fun getDownloadManager(): DownloadManager {
+        Log.d(TAG, "下载管理器在下载服务初始化！")
+        return BilisoundPlayerModule.getDownloadManager(applicationContext)
+    }
+
+    @SuppressLint("MissingPermission")
     override fun getScheduler(): Scheduler {
         return PlatformScheduler(this, JOB_ID)
     }

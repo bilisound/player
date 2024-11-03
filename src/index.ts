@@ -174,3 +174,7 @@ export async function deleteTracks(index: number | number[]): Promise<void> {
   }
   return BilisoundPlayerModule.deleteTrack(index);
 }
+
+export async function testAction1(): Promise<void> {
+  return BilisoundPlayerModule.testAction1();
+}
