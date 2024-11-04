@@ -1,5 +1,6 @@
 import { BilisoundPlayerModule } from "./BilisoundPlayerModule";
 import {
+  DownloadData,
   PlaybackProgress,
   PlaybackState,
   TrackData,
@@ -177,4 +178,16 @@ export async function deleteTracks(index: number | number[]): Promise<void> {
 
 export async function testAction1(): Promise<void> {
   return BilisoundPlayerModule.testAction1();
+}
+
+export async function addDownload(
+  id: string,
+  uri: string,
+  metadata?: DownloadData,
+): Promise<void> {
+  return BilisoundPlayerModule.addDownload(
+    id,
+    uri,
+    metadata ? JSON.stringify(metadata) : '{"headers":{}}',
+  );
 }

@@ -20,6 +20,10 @@ export interface TrackDataInternal {
   extendedData: string | null;
 }
 
+export interface DownloadData {
+  headers: Record<string, string>;
+}
+
 export interface PlaybackProgress {
   duration: number;
   position: number;

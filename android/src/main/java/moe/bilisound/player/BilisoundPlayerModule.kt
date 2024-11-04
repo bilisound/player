@@ -16,7 +16,6 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.database.DatabaseProvider
 import androidx.media3.database.StandaloneDatabaseProvider
-import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.HttpDataSource
 import androidx.media3.datasource.cache.NoOpCacheEvictor
 import androidx.media3.datasource.cache.SimpleCache
@@ -32,19 +31,23 @@ import expo.modules.kotlin.Promise
 import expo.modules.kotlin.exception.Exceptions
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
+import kotlinx.serialization.json.Json
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.concurrent.Executor
+
 
 const val TAG = "BilisoundPlayerModule"
 
 class BilisoundPlayerModule : Module() {
     companion object {
         private var downloadNotificationHelper: DownloadNotificationHelper? = null
-        @Volatile
         private var databaseProvider: DatabaseProvider? = null
-        @Volatile
         private var downloadCache: SimpleCache? = null
+        private var dataSourceFactory: BilisoundHttpDataSource.Factory? = null
+
+        @Volatile
+        var downloadData: DownloadData? = null
 
         @Synchronized
         fun getDownloadCache(context: Context): SimpleCache {
@@ -78,14 +81,17 @@ class BilisoundPlayerModule : Module() {
             return downloadNotificationHelper!!
         }
 
+        private fun getDataSourceFactory(): BilisoundHttpDataSource.Factory {
+            if (dataSourceFactory == null) {
+                dataSourceFactory = BilisoundHttpDataSource.Factory()
+            }
+            return dataSourceFactory!!
+        }
+
         fun getDownloadManager(context: Context): DownloadManager {
-            // 使用单例方法替换原来的直接初始化
             val databaseProvider = getDatabaseProvider(context)
             val downloadCache = getDownloadCache(context)
-
-            // Create a factory for reading the data from the network.
-            val dataSourceFactory = DefaultHttpDataSource.Factory()
-
+            val dataSourceFactory = getDataSourceFactory()
             val downloadExecutor = Executor(Runnable::run)
 
             // Create the download manager.
@@ -93,7 +99,6 @@ class BilisoundPlayerModule : Module() {
                 DownloadManager(context, databaseProvider, downloadCache, dataSourceFactory, downloadExecutor)
 
             Log.d(TAG, "下载管理器初始化！")
-
             return downloadManager
         }
     }
@@ -513,7 +518,7 @@ class BilisoundPlayerModule : Module() {
 
         AsyncFunction("testAction1") { promise: Promise ->
             mainHandler.post {
-                val target = "https://assets.tcdww.cn/website/test/01 逃避 行.m4a"
+                val target = "http://192.168.247.95:8080/Denki%20Groove/A/09%20Shangri-La.m4a"
                 val downloadRequest = DownloadRequest.Builder(target, Uri.parse(target)).build()
                 DownloadService.sendAddDownload(
                     context,
@@ -526,7 +531,26 @@ class BilisoundPlayerModule : Module() {
                 Toast.makeText(context, "发送了下载请求。${downloads.count}", Toast.LENGTH_LONG).show()
                 promise.resolve()
             }
+        }
 
+        AsyncFunction("addDownload") { id: String, uri: String, metadata: String, promise: Promise ->
+            mainHandler.post {
+                try {
+                    val downloadRequest = DownloadRequest.Builder(id, Uri.parse(uri))
+                        .build()
+
+                    downloadData = Json.decodeFromString(metadata)
+                    DownloadService.sendAddDownload(
+                        context,
+                        BilisoundDownloadService::class.java,
+                        downloadRequest,
+                        /* foreground= */ false
+                    )
+                    promise.resolve()
+                } catch (e: Exception) {
+                    promise.reject("DOWNLOADER_ERROR", "无法下载所请求的文件：${e.message}", e)
+                }
+            }
         }
     }
 

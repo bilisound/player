@@ -46,7 +46,7 @@ class BilisoundDownloadService
     ): Notification {
         return BilisoundPlayerModule.getDownloadNotificationHelper( /* context= */this)
             .buildProgressNotification( /* context= */
-                this,
+                applicationContext,
                 R.drawable.ic_download,  /* contentIntent= */
                 null,  /* message= */
                 null,

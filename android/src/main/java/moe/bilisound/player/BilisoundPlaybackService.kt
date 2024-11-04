@@ -23,34 +23,6 @@ class BilisoundPlaybackService : MediaSessionService() {
     // Create your Player and MediaSession in the onCreate lifecycle event
     @OptIn(UnstableApi::class) override fun onCreate() {
         super.onCreate()
-        
-        // 创建自定义的 DataSource.Factory
-        /*val httpDataSourceFactory = DataSource.Factory {
-            DefaultHttpDataSource.Factory()
-                .setDefaultRequestProperties(mapOf(
-                    "User-Agent" to "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36"
-                ))
-                .createDataSource()
-                .apply {
-                    mainThreadExecutor.execute {
-                        val currentItem = mediaSession?.player?.currentMediaItem
-                        val extras = currentItem?.mediaMetadata?.extras
-
-                        // 可以在 extras 的 headers 存放 JSON 键值对对象，这样可以应用到 HTTP Header 上
-                        if (extras != null) {
-                            val headers = extras.getString("httpHeaders")?.let { JSONObject(it) }
-                            headers?.keys()?.forEach { key ->
-                                val value = headers.get(key)
-                                Log.d(TAG, "Setting header for HTTP request. Key: $key, Value: $value")
-                                setRequestProperty(key.trim(), (value as String).trim())
-                            }
-                        }
-                    }
-                }
-        }
-
-        // 使用自定义的 DataSource.Factory 创建 MediaSourceFactory
-        val mediaSourceFactory = DefaultMediaSourceFactory(httpDataSourceFactory)*/
 
         // 创建自定义的 DataSource.Factory 并整合缓存功能
         val dataSourceFactory = CacheDataSource.Factory()
