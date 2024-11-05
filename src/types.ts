@@ -7,7 +7,7 @@ export interface TrackData {
   title?: string | null;
   artist?: string | null;
   duration?: number | null;
-  httpHeaders?: Record<string, string> | null;
+  headers?: Record<string, string> | null;
   extendedData?: ExtendedData | null;
 }
 
@@ -18,7 +18,7 @@ export interface TrackDataInternal {
   title: string | null;
   artist: string | null;
   duration: number | null;
-  httpHeaders: string | null;
+  headers: string | null;
   extendedData: string | null;
 }
 

@@ -10,8 +10,8 @@ import { EventList, TrackData, TrackDataInternal } from "./types";
  * @param trackData
  */
 export function toTrackDataInternal(trackData: TrackData): TrackDataInternal {
-  const userHttpHeaders = trackData.httpHeaders ?? {};
-  const httpHeaders = { ...Config.instance.defaultHeaders, ...userHttpHeaders };
+  const userHeaders = trackData.headers ?? {};
+  const headers = { ...Config.instance.defaultHeaders, ...userHeaders };
   return {
     id: trackData.id,
     uri: trackData.uri,
@@ -19,7 +19,7 @@ export function toTrackDataInternal(trackData: TrackData): TrackDataInternal {
     title: trackData.title ?? null,
     artist: trackData.artist ?? null,
     duration: trackData.duration ?? null,
-    httpHeaders: JSON.stringify(httpHeaders),
+    headers: JSON.stringify(headers),
     extendedData: trackData.extendedData
       ? JSON.stringify(trackData.extendedData)
       : null,
@@ -33,8 +33,8 @@ export function toTrackDataInternal(trackData: TrackData): TrackDataInternal {
 export function toTrackData(trackDataInternal: TrackDataInternal): TrackData {
   return {
     ...trackDataInternal,
-    httpHeaders: trackDataInternal.httpHeaders
-      ? JSON.parse(trackDataInternal.httpHeaders)
+    headers: trackDataInternal.headers
+      ? JSON.parse(trackDataInternal.headers)
       : undefined,
     extendedData: trackDataInternal.extendedData
       ? JSON.parse(trackDataInternal.extendedData)
@@ -83,7 +83,7 @@ export function createSubscriptionStore<T>({
 
   const subscribe = (listener: () => void) => {
     progressListeners.add(listener);
-    if (progressListeners.size > 0) {
+    if (!subscription) {
       startFetching();
     }
     return () => {

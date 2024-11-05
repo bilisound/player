@@ -33,7 +33,7 @@ data class TrackData(
      * {"foo":"bar","User-Agent":"something 123456"}
      * ```
      */
-    val httpHeaders: String?,
+    val headers: String?,
     /**
      * Extended data of track, maybe useful for JavaScript/TypeScript side.
      */

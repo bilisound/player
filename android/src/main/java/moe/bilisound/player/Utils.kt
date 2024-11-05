@@ -12,8 +12,8 @@ fun createMediaItemFromTrack(json: String): MediaItem {
     val output = Json.decodeFromString<TrackData>(json)
 
     val extras = Bundle().apply {
-        if (output.httpHeaders != null) {
-            putString("httpHeaders", output.httpHeaders)
+        if (output.headers != null) {
+            putString("headers", output.headers)
         }
         if (output.extendedData != null) {
             putString("extendedData", output.extendedData)
@@ -57,7 +57,7 @@ fun mediaItemToBundle(mediaItem: MediaItem): Bundle {
         "title" to metadata.title,
         "artist" to metadata.artist,
         "duration" to (metadata.durationMs?.div(1000) ?: 0),
-        "httpHeaders" to metadata.extras?.getString("httpHeaders"),
+        "headers" to metadata.extras?.getString("headers"),
         "extendedData" to metadata.extras?.getString("extendedData")
     )
 }

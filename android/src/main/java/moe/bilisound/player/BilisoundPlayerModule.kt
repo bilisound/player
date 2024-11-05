@@ -424,7 +424,7 @@ class BilisoundPlayerModule : Module() {
                             put("title", metadata.title)
                             put("artist", metadata.artist)
                             put("duration", metadata.durationMs?.div(1000) ?: 0)
-                            put("httpHeaders", metadata.extras?.getString("httpHeaders"))
+                            put("headers", metadata.extras?.getString("headers"))
                             put("extendedData", metadata.extras?.getString("extendedData"))
                         }
                         

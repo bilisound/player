@@ -39,7 +39,7 @@ class BilisoundPlaybackService : MediaSessionService() {
                             // 可以在 extras 的 headers 存放 JSON 键值对对象，这样可以应用到 HTTP Header 上
                             if (extras != null) {
                                 val headers =
-                                    extras.getString("httpHeaders")?.let { JSONObject(it) }
+                                    extras.getString("headers")?.let { JSONObject(it) }
                                 headers?.keys()?.forEach { key ->
                                     val value = headers.get(key)
                                     Log.d(
