@@ -2,6 +2,7 @@ import { Subscription } from "expo-modules-core";
 import { useSyncExternalStore } from "react";
 
 import { addListener } from "./events";
+import { Config } from "./index";
 import { EventList, TrackData, TrackDataInternal } from "./types";
 
 /**
@@ -9,15 +10,16 @@ import { EventList, TrackData, TrackDataInternal } from "./types";
  * @param trackData
  */
 export function toTrackDataInternal(trackData: TrackData): TrackDataInternal {
+  const userHttpHeaders = trackData.httpHeaders ?? {};
+  const httpHeaders = { ...Config.instance.defaultHeaders, ...userHttpHeaders };
   return {
+    id: trackData.id,
     uri: trackData.uri,
     artworkUri: trackData.artworkUri ?? null,
     title: trackData.title ?? null,
     artist: trackData.artist ?? null,
     duration: trackData.duration ?? null,
-    httpHeaders: trackData.httpHeaders
-      ? JSON.stringify(trackData.httpHeaders)
-      : null,
+    httpHeaders: JSON.stringify(httpHeaders),
     extendedData: trackData.extendedData
       ? JSON.stringify(trackData.extendedData)
       : null,
