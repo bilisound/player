@@ -18,6 +18,7 @@ async function addBiliTrack(id: string, episode = 1) {
   console.log(res);
   await BilisoundPlayer.addTracks([
     {
+      id: `bs_${id}_${episode}`,
       uri: res.url,
       title: info.data.title,
       artist: info.data.owner.name,
@@ -29,6 +30,17 @@ async function addBiliTrack(id: string, episode = 1) {
     },
   ]);
   ToastAndroid.show("添加成功：" + id + ", " + episode, 5000);
+}
+
+async function downloadBiliTrack(id: string, episode = 1) {
+  const res = await getBilisoundResourceUrl({ id, episode });
+  console.log(res);
+  await BilisoundPlayer.addDownload(`bs_${id}_${episode}`, res.url, {
+    headers: {
+      referer: getVideoUrl(id, episode),
+    },
+  });
+  ToastAndroid.show("下载添加成功：" + id + ", " + episode, 5000);
 }
 
 function RealTimeProgress() {
@@ -63,19 +75,6 @@ export function Control() {
       <Text>{`Current Track: ${JSON.stringify(currentTrack, null, 2)}`}</Text>
       <Button
         onPress={async () =>
-          await BilisoundPlayer.addTracks([
-            {
-              uri: "https://assets.tcdww.cn/website/test/01 25時のラブレター.m4a",
-            },
-            {
-              uri: "https://assets.tcdww.cn/website/test/01 逃避 行.m4a",
-            },
-          ])
-        }
-        title="Add Tracks"
-      />
-      <Button
-        onPress={async () =>
           console.log(
             JSON.stringify(await BilisoundPlayer.getCurrentTrack(), null, 2),
           )
@@ -108,9 +107,92 @@ export function Control() {
           title="Add 4"
         />
       </View>
+      <View style={styles.row}>
+        <Button
+          onPress={async () => {
+            await BilisoundPlayer.addTrack({
+              id: "test_track_5",
+              uri: "http://192.168.247.95:8080/%E5%AE%89%E4%BA%95%E6%B4%8B%E4%BB%8B/%E3%81%BE%E3%82%82%E3%82%8B%E3%82%AF%E3%83%B3%E3%81%AF%E5%91%AA%E3%82%8F%E3%82%8C%E3%81%A6%E3%81%97%E3%81%BE%E3%81%A3%E3%81%9F%EF%BC%81%E3%82%A2%E3%83%AC%E3%83%B3%E3%82%B7%E3%82%99%E3%83%88%E3%83%A9%E3%83%83%E3%82%AF%E3%82%B9/05%20YO-KAI%20Disco%20(%E5%86%A5%E7%95%8C%E5%85%A5%E5%8F%A3%E3%83%AF%E3%83%BC%E3%83%AB%E3%83%89).m4a",
+              httpHeaders: {
+                "User-Agent": "zehuoge",
+              },
+            });
+          }}
+          title="Add 5"
+        />
+        <Button
+          onPress={async () => {
+            await BilisoundPlayer.addTrack({
+              id: "test_track_6",
+              uri: "http://192.168.247.95:8080/%E5%AE%89%E4%BA%95%E6%B4%8B%E4%BB%8B/%E3%81%BE%E3%82%82%E3%82%8B%E3%82%AF%E3%83%B3%E3%81%AF%E5%91%AA%E3%82%8F%E3%82%8C%E3%81%A6%E3%81%97%E3%81%BE%E3%81%A3%E3%81%9F%EF%BC%81%E3%82%A2%E3%83%AC%E3%83%B3%E3%82%B7%E3%82%99%E3%83%88%E3%83%A9%E3%83%83%E3%82%AF%E3%82%B9/06%20Blossom%20Shower%20(%E6%A1%9C%E3%81%AE%E5%8F%A4%E9%83%B7%E3%83%AF%E3%83%BC%E3%83%AB%E3%83%89%E3%83%BB%E5%89%8D%E5%8D%8A).m4a",
+              httpHeaders: {
+                "User-Agent": "zehuoge",
+              },
+            });
+          }}
+          title="Add 6"
+        />
+      </View>
+      <View style={styles.row}>
+        <Button
+          onPress={async () => {
+            await downloadBiliTrack("BV1b84y187WC");
+          }}
+          title="DL 1"
+        />
+        <Button
+          onPress={async () => {
+            await downloadBiliTrack("BV1bb4se5ENA");
+          }}
+          title="DL 2"
+        />
+        <Button
+          onPress={async () => {
+            await downloadBiliTrack("BV1kw411t7iy");
+          }}
+          title="DL 3"
+        />
+        <Button
+          onPress={async () => {
+            await downloadBiliTrack("BV1NH4y1c723");
+          }}
+          title="DL 4"
+        />
+      </View>
+      <View style={styles.row}>
+        <Button
+          onPress={async () => {
+            await BilisoundPlayer.addDownload(
+              "test_track_5",
+              "http://192.168.247.95:8080/%E5%AE%89%E4%BA%95%E6%B4%8B%E4%BB%8B/%E3%81%BE%E3%82%82%E3%82%8B%E3%82%AF%E3%83%B3%E3%81%AF%E5%91%AA%E3%82%8F%E3%82%8C%E3%81%A6%E3%81%97%E3%81%BE%E3%81%A3%E3%81%9F%EF%BC%81%E3%82%A2%E3%83%AC%E3%83%B3%E3%82%B7%E3%82%99%E3%83%88%E3%83%A9%E3%83%83%E3%82%AF%E3%82%B9/05%20YO-KAI%20Disco%20(%E5%86%A5%E7%95%8C%E5%85%A5%E5%8F%A3%E3%83%AF%E3%83%BC%E3%83%AB%E3%83%89).m4a",
+              {
+                headers: {
+                  "User-Agent": "zehuoge",
+                },
+              },
+            );
+          }}
+          title="DL 5"
+        />
+        <Button
+          onPress={async () => {
+            await BilisoundPlayer.addDownload(
+              "test_track_6",
+              "http://192.168.247.95:8080/%E5%AE%89%E4%BA%95%E6%B4%8B%E4%BB%8B/%E3%81%BE%E3%82%82%E3%82%8B%E3%82%AF%E3%83%B3%E3%81%AF%E5%91%AA%E3%82%8F%E3%82%8C%E3%81%A6%E3%81%97%E3%81%BE%E3%81%A3%E3%81%9F%EF%BC%81%E3%82%A2%E3%83%AC%E3%83%B3%E3%82%B7%E3%82%99%E3%83%88%E3%83%A9%E3%83%83%E3%82%AF%E3%82%B9/06%20Blossom%20Shower%20(%E6%A1%9C%E3%81%AE%E5%8F%A4%E9%83%B7%E3%83%AF%E3%83%BC%E3%83%AB%E3%83%89%E3%83%BB%E5%89%8D%E5%8D%8A).m4a",
+              {
+                headers: {
+                  "User-Agent": "zehuoge",
+                },
+              },
+            );
+          }}
+          title="DL 6"
+        />
+      </View>
       <Button
         onPress={async () =>
           await BilisoundPlayer.replaceTrack(1, {
+            id: "test_song",
             uri: "https://assets.tcdww.cn/website/test/05 パシオン.m4a",
             artworkUri: "https://assets.tcdww.cn/website/test/8%20(106).jpg",
             title: "测试标题 " + Math.random(),

@@ -1,4 +1,4 @@
-import { addDownload, testAction1 } from "bilisound-player";
+import { setDefaultHeaders } from "bilisound-player";
 import { useState } from "react";
 import { Button, ScrollView, StyleSheet, Text, View } from "react-native";
 
@@ -6,6 +6,11 @@ import { Control } from "~/components/Control";
 import { Playlist } from "~/components/Playlist";
 
 type Pages = "control" | "playlist";
+
+setDefaultHeaders({
+  "User-Agent":
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
+});
 
 export default function App() {
   const [page, setPage] = useState<Pages>("control");
@@ -17,22 +22,6 @@ export default function App() {
         <View style={styles.row}>
           <Button onPress={() => setPage("control")} title="Control" />
           <Button onPress={() => setPage("playlist")} title="Playlist" />
-          <Button
-            title="测试操作"
-            onPress={() =>
-              addDownload(
-                "114514_3",
-                "https://endsiy3x2cq95.x.pipedream.net/?3",
-                {
-                  headers: {
-                    "User-Agent": "test ua change",
-                    aaa: "bbbb",
-                    xxx: "aaaaa",
-                  },
-                },
-              )
-            }
-          />
         </View>
         {page === "control" && <Control />}
         {page === "playlist" && <Playlist />}

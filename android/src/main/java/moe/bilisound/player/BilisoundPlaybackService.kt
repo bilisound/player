@@ -29,17 +29,13 @@ class BilisoundPlaybackService : MediaSessionService() {
             .setCache(BilisoundPlayerModule.getDownloadCache(applicationContext)) // 确保 downloadCache 已正确初始化
             .setUpstreamDataSourceFactory {
                 DefaultHttpDataSource.Factory()
-                    .setDefaultRequestProperties(
-                        mapOf(
-                            "User-Agent" to "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36"
-                        )
-                    )
                     .createDataSource()
                     .apply {
                         mainThreadExecutor.execute {
                             val currentItem = mediaSession?.player?.currentMediaItem
                             val extras = currentItem?.mediaMetadata?.extras
 
+                            // todo 解决不能动态设置 User-Agent 的问题
                             // 可以在 extras 的 headers 存放 JSON 键值对对象，这样可以应用到 HTTP Header 上
                             if (extras != null) {
                                 val headers =
@@ -65,6 +61,7 @@ class BilisoundPlaybackService : MediaSessionService() {
         val player = ExoPlayer.Builder(this)
             .setMediaSourceFactory(mediaSourceFactory)
             .build()
+
         mediaSession = MediaSession.Builder(this, player).setId("moe.bilisound.player").build()
         player.clearMediaItems()
         player.prepare()

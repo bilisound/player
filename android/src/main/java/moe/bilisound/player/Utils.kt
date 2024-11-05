@@ -39,6 +39,8 @@ fun createMediaItemFromTrack(json: String): MediaItem {
     val testItem = MediaItem
         .Builder()
         .setUri(output.uri)
+        .setMediaId(output.id)
+        .setCustomCacheKey(output.id)
         .setMediaMetadata(mediaMetadata)
         .build()
 
@@ -49,6 +51,7 @@ fun createMediaItemFromTrack(json: String): MediaItem {
 fun mediaItemToBundle(mediaItem: MediaItem): Bundle {
     val metadata = mediaItem.mediaMetadata
     return bundleOf(
+        "id" to mediaItem.mediaId,
         "uri" to mediaItem.localConfiguration?.uri?.toString(),
         "artworkUri" to metadata.artworkUri?.toString(),
         "title" to metadata.title,

@@ -3,6 +3,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class TrackData(
+    val id: String,
     /**
      * Track File URI
      */

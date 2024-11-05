@@ -6,7 +6,6 @@ import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import android.widget.Toast
 import androidx.annotation.OptIn
 import androidx.core.os.bundleOf
 import androidx.media3.common.MediaItem
@@ -35,7 +34,6 @@ import kotlinx.serialization.json.Json
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.concurrent.Executor
-
 
 const val TAG = "BilisoundPlayerModule"
 
@@ -420,6 +418,7 @@ class BilisoundPlayerModule : Module() {
                         val metadata = mediaItem.mediaMetadata
                         
                         val trackInfo = JSONObject().apply {
+                            put("id", mediaItem.mediaId)
                             put("uri", mediaItem.localConfiguration?.uri?.toString() ?: "")
                             put("artworkUri", metadata.artworkUri?.toString())
                             put("title", metadata.title)
@@ -518,17 +517,6 @@ class BilisoundPlayerModule : Module() {
 
         AsyncFunction("testAction1") { promise: Promise ->
             mainHandler.post {
-                val target = "http://192.168.247.95:8080/Denki%20Groove/A/09%20Shangri-La.m4a"
-                val downloadRequest = DownloadRequest.Builder(target, Uri.parse(target)).build()
-                DownloadService.sendAddDownload(
-                    context,
-                    BilisoundDownloadService::class.java,
-                    downloadRequest,
-                    /* foreground= */ false
-                )
-                val index = getDownloadManager(context).downloadIndex
-                val downloads = index.getDownloads()
-                Toast.makeText(context, "发送了下载请求。${downloads.count}", Toast.LENGTH_LONG).show()
                 promise.resolve()
             }
         }
@@ -537,6 +525,7 @@ class BilisoundPlayerModule : Module() {
             mainHandler.post {
                 try {
                     val downloadRequest = DownloadRequest.Builder(id, Uri.parse(uri))
+                        .setCustomCacheKey(id)
                         .build()
 
                     downloadData = Json.decodeFromString(metadata)

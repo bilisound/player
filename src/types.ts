@@ -1,6 +1,7 @@
 export type ExtendedData = any;
 
 export interface TrackData {
+  id: string;
   uri: string;
   artworkUri?: string | null;
   title?: string | null;
@@ -11,6 +12,7 @@ export interface TrackData {
 }
 
 export interface TrackDataInternal {
+  id: string;
   uri: string;
   artworkUri: string | null;
   title: string | null;

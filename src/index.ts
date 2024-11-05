@@ -8,6 +8,20 @@ import {
 } from "./types";
 import { toTrackData, toTrackDataInternal } from "./utils";
 
+export class Config {
+  static instance: Config = new Config();
+
+  defaultHeaders: Record<string, string> = {};
+}
+
+/**
+ * 设置默认请求 Headers，包括 `User-Agent`
+ * @param defaultHeaders
+ */
+export function setDefaultHeaders(defaultHeaders: Record<string, string>) {
+  Config.instance.defaultHeaders = defaultHeaders;
+}
+
 /**
  * 播放
  */
@@ -183,11 +197,14 @@ export async function testAction1(): Promise<void> {
 export async function addDownload(
   id: string,
   uri: string,
-  metadata?: DownloadData,
+  metadata: DownloadData = { headers: {} },
 ): Promise<void> {
+  const outputMetadata: DownloadData = {
+    headers: { ...Config.instance.defaultHeaders, ...metadata.headers },
+  };
   return BilisoundPlayerModule.addDownload(
     id,
     uri,
-    metadata ? JSON.stringify(metadata) : '{"headers":{}}',
+    JSON.stringify(outputMetadata),
   );
 }
