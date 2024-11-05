@@ -106,6 +106,12 @@ export function Control() {
           }}
           title="Add 4"
         />
+        <Button
+          onPress={async () => {
+            await addBiliTrack("BV19U411U7rb");
+          }}
+          title="Add 5"
+        />
       </View>
       <View style={styles.row}>
         <Button
@@ -157,6 +163,12 @@ export function Control() {
             await downloadBiliTrack("BV1NH4y1c723");
           }}
           title="DL 4"
+        />
+        <Button
+          onPress={async () => {
+            await downloadBiliTrack("BV19U411U7rb");
+          }}
+          title="DL 5"
         />
       </View>
       <View style={styles.row}>
