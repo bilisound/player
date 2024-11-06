@@ -2,7 +2,6 @@
 
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultHttpDataSource
@@ -11,12 +10,10 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
-import org.json.JSONObject
 import java.util.concurrent.Executor
 
 class BilisoundPlaybackService : MediaSessionService() {
     private var mediaSession: MediaSession? = null
-    private val mainThreadExecutor = MainThreadExecutor()
 
     val TAG = "BilisoundPlaybackService"
 
@@ -30,27 +27,6 @@ class BilisoundPlaybackService : MediaSessionService() {
             .setUpstreamDataSourceFactory {
                 DefaultHttpDataSource.Factory()
                     .createDataSource()
-                    .apply {
-                        mainThreadExecutor.execute {
-                            val currentItem = mediaSession?.player?.currentMediaItem
-                            val extras = currentItem?.mediaMetadata?.extras
-
-                            // todo 解决不能动态设置 User-Agent 的问题
-                            // 可以在 extras 的 headers 存放 JSON 键值对对象，这样可以应用到 HTTP Header 上
-                            if (extras != null) {
-                                val headers =
-                                    extras.getString("headers")?.let { JSONObject(it) }
-                                headers?.keys()?.forEach { key ->
-                                    val value = headers.get(key)
-                                    Log.d(
-                                        TAG,
-                                        "Setting header for HTTP request. Key: $key, Value: $value"
-                                    )
-                                    setRequestProperty(key.trim(), (value as String).trim())
-                                }
-                            }
-                        }
-                    }
             }
             .setCacheWriteDataSinkFactory(null) // 禁用写入
 

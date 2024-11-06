@@ -79,7 +79,7 @@ class BilisoundPlayerModule : Module() {
             return downloadNotificationHelper!!
         }
 
-        private fun getDataSourceFactory(): BilisoundHttpDataSource.Factory {
+        fun getDataSourceFactory(): BilisoundHttpDataSource.Factory {
             if (dataSourceFactory == null) {
                 dataSourceFactory = BilisoundHttpDataSource.Factory()
             }
