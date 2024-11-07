@@ -45,6 +45,30 @@ export type ErrorType =
   | "ERROR_BAD_HTTP_STATUS_CODE"
   | "ERROR_GENERIC";
 
+// 下载状态字典
+export const DownloadState = {
+  /** The download is waiting to be started. */
+  STATE_QUEUED: 0,
+
+  /** The download is stopped for a specified. */
+  STATE_STOPPED: 1,
+
+  /** The download is currently started. */
+  STATE_DOWNLOADING: 2,
+
+  /** The download completed. */
+  STATE_COMPLETED: 3,
+
+  /** The download failed. */
+  STATE_FAILED: 4,
+
+  /** The download is being removed. */
+  STATE_REMOVING: 5,
+
+  /** The download will restart after all downloaded data is removed. */
+  STATE_RESTARTING: 7,
+};
+
 // 播放状态变化事件
 export interface PlaybackStateChangeEvent {
   type: PlaybackState;

@@ -1,6 +1,7 @@
 @file:OptIn(UnstableApi::class) package moe.bilisound.player
 
 import android.net.Uri
+import android.util.Log
 import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSpec
@@ -15,6 +16,8 @@ class BilisoundHttpDataSource private constructor(
     companion object {
         // todo 这样做在多线程下载真的没问题吗？目前还没有验证
         var headers: Map<String, String> = mapOf()
+
+        const val TAG = "BilisoundHttpDataSource"
     }
 
     // 工厂类
@@ -39,7 +42,12 @@ class BilisoundHttpDataSource private constructor(
     }
 
     override fun open(dataSpec: DataSpec): Long {
+        Log.d(TAG, "open: 对请求设置 Headers")
+        Log.d(TAG, "open: 请求 Uri: ${dataSpec.uri}")
         val handledSpec = dataSpec.withAdditionalHeaders(headers)
+        for (header in headers) {
+            Log.d(TAG, "open: Key: ${header.key}, Value: ${header.value}")
+        }
         return defaultHttpDataSource.open(handledSpec)
     }
 

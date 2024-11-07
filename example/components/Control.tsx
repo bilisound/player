@@ -4,6 +4,7 @@ import { useEvents } from "bilisound-player/hooks/useEvents";
 import { useIsPlaying } from "bilisound-player/hooks/useIsPlaying";
 import { usePlaybackState } from "bilisound-player/hooks/usePlaybackState";
 import { useProgress } from "bilisound-player/hooks/useProgress";
+import { DownloadState } from "bilisound-player/types";
 import { Button, StyleSheet, Text, ToastAndroid, View } from "react-native";
 
 import {
@@ -202,6 +203,20 @@ export function Control() {
           }}
           title="DL 6"
         />
+        <Button
+          onPress={async () => {
+            await BilisoundPlayer.addDownload(
+              "test_track_large",
+              `https://ash-speed.hetzner.com/10GB.bin`,
+              {
+                headers: {
+                  "User-Agent": "zehuoge",
+                },
+              },
+            );
+          }}
+          title="DL large"
+        />
       </View>
       <Button
         onPress={async () =>
@@ -244,6 +259,12 @@ export function Control() {
         title="Delete Track index 2, 1"
       />
       <Button onPress={handleGetAllTracks} title="Get All Tracks" />
+      <Button
+        onPress={async () => {
+          console.log(await BilisoundPlayer.getDownloads());
+        }}
+        title="get current downloads"
+      />
     </View>
   );
 }

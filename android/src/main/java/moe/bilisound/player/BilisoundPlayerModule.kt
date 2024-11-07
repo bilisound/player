@@ -18,6 +18,7 @@ import androidx.media3.database.StandaloneDatabaseProvider
 import androidx.media3.datasource.HttpDataSource
 import androidx.media3.datasource.cache.NoOpCacheEvictor
 import androidx.media3.datasource.cache.SimpleCache
+import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadManager
 import androidx.media3.exoplayer.offline.DownloadNotificationHelper
 import androidx.media3.exoplayer.offline.DownloadRequest
@@ -30,6 +31,7 @@ import expo.modules.kotlin.Promise
 import expo.modules.kotlin.exception.Exceptions
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
+import expo.modules.kotlin.types.Enumerable
 import kotlinx.serialization.json.Json
 import org.json.JSONArray
 import org.json.JSONObject
@@ -333,7 +335,7 @@ class BilisoundPlayerModule : Module() {
                     promise.resolve()
                     firePlaylistChangeEvent()
                 } catch (e: Exception) {
-                    promise.reject("PLAYER_ERROR", "无法添加单首曲目 (${e.message})", e)
+                    promise.reject("PLAYER_ERROR", "无法添加单曲目 (${e.message})", e)
                 }
             }
         }
@@ -539,6 +541,36 @@ class BilisoundPlayerModule : Module() {
                 }
             }
         }
+
+        AsyncFunction("getDownloads") { state: DownloadState?, promise: Promise ->
+            mainHandler.post {
+                try {
+                    val downloadManager = getDownloadManager(context.applicationContext)
+                    val downloadIndex = if (state != null) {
+                        downloadManager.downloadIndex.getDownloads(state.value)
+                    } else {
+                        downloadManager.downloadIndex.getDownloads()
+                    }
+                    val downloads = JSONArray()
+
+                    while (downloadIndex.moveToNext()) {
+                        val download = downloadIndex.download
+                        downloads.put(JSONObject().apply {
+                            put("id", download.request.id)
+                            put("uri", download.request.uri.toString())
+                            put("bytesDownloaded", download.bytesDownloaded)
+                            put("bytesTotal", download.contentLength)
+                            put("state", download.state)
+                        })
+                    }
+                    downloadIndex.close()
+                    
+                    promise.resolve(downloads.toString())
+                } catch (e: Exception) {
+                    promise.reject("DOWNLOADER_ERROR", "无法获取下载列表：${e.message}", e)
+                }
+            }
+        }
     }
 
     private fun firePlaylistChangeEvent() {
@@ -616,4 +648,14 @@ class BilisoundPlayerModule : Module() {
             ))
         }
     }
+}
+
+enum class DownloadState(val value: Int) : Enumerable {
+    STATE_QUEUED(Download.STATE_QUEUED),
+    STATE_STOPPED(Download.STATE_STOPPED),
+    STATE_DOWNLOADING(Download.STATE_DOWNLOADING),
+    STATE_COMPLETED(Download.STATE_COMPLETED),
+    STATE_FAILED(Download.STATE_FAILED),
+    STATE_REMOVING(Download.STATE_REMOVING),
+    STATE_RESTARTING(Download.STATE_RESTARTING)
 }
