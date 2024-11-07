@@ -69,6 +69,17 @@ export const DownloadState = {
   STATE_RESTARTING: 7,
 };
 
+/**
+ * 下载项目
+ */
+export interface DownloadItem {
+  bytesDownloaded: number;
+  bytesTotal: number;
+  id: string;
+  state: number;
+  uri: string;
+}
+
 // 播放状态变化事件
 export interface PlaybackStateChangeEvent {
   type: PlaybackState;

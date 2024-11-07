@@ -571,6 +571,22 @@ class BilisoundPlayerModule : Module() {
                 }
             }
         }
+
+        AsyncFunction("removeDownload") { id: String, promise: Promise ->
+            mainHandler.post {
+                try {
+                    DownloadService.sendRemoveDownload(
+                        context,
+                        BilisoundDownloadService::class.java,
+                        id,
+                        /* foreground= */ false
+                    )
+                    promise.resolve()
+                } catch (e: Exception) {
+                    promise.reject("DOWNLOADER_ERROR", "无法移除所请求的文件：${e.message}", e)
+                }
+            }
+        }
     }
 
     private fun firePlaylistChangeEvent() {

@@ -1,6 +1,7 @@
 import { BilisoundPlayerModule } from "./BilisoundPlayerModule";
 import {
   DownloadData,
+  DownloadItem,
   DownloadState,
   PlaybackProgress,
   PlaybackState,
@@ -191,6 +192,12 @@ export async function deleteTracks(index: number | number[]): Promise<void> {
   return BilisoundPlayerModule.deleteTrack(index);
 }
 
+/**
+ * 添加下载项
+ * @param id
+ * @param uri
+ * @param metadata
+ */
 export async function addDownload(
   id: string,
   uri: string,
@@ -206,8 +213,20 @@ export async function addDownload(
   );
 }
 
+/**
+ * 查询下载项
+ * @param state
+ */
 export async function getDownloads(
   state?: (typeof DownloadState)[keyof typeof DownloadState],
 ): Promise<any> {
   return JSON.parse(await BilisoundPlayerModule.getDownloads(state));
+}
+
+/**
+ * 移除下载项
+ * @param id
+ */
+export async function removeDownload(id: string): Promise<DownloadItem[]> {
+  return JSON.parse(await BilisoundPlayerModule.removeDownload(id));
 }
