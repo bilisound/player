@@ -4,7 +4,6 @@ import android.os.Handler
 import android.os.Looper
 import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
@@ -15,8 +14,6 @@ import java.util.concurrent.Executor
 class BilisoundPlaybackService : MediaSessionService() {
     private var mediaSession: MediaSession? = null
 
-    val TAG = "BilisoundPlaybackService"
-
     // Create your Player and MediaSession in the onCreate lifecycle event
     @OptIn(UnstableApi::class) override fun onCreate() {
         super.onCreate()
@@ -25,7 +22,7 @@ class BilisoundPlaybackService : MediaSessionService() {
         val dataSourceFactory = CacheDataSource.Factory()
             .setCache(BilisoundPlayerModule.getDownloadCache(applicationContext)) // 确保 downloadCache 已正确初始化
             .setUpstreamDataSourceFactory {
-                DefaultHttpDataSource.Factory()
+                BilisoundPlayerModule.getDataSourceFactory()
                     .createDataSource()
             }
             .setCacheWriteDataSinkFactory(null) // 禁用写入

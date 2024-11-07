@@ -44,9 +44,6 @@ class BilisoundPlayerModule : Module() {
         private var downloadCache: SimpleCache? = null
         private var dataSourceFactory: BilisoundHttpDataSource.Factory? = null
 
-        @Volatile
-        var downloadData: DownloadData? = null
-
         @Synchronized
         fun getDownloadCache(context: Context): SimpleCache {
             Log.d(TAG, "缓存初始化！orig: $downloadCache, context: $context")
@@ -528,7 +525,8 @@ class BilisoundPlayerModule : Module() {
                         .setCustomCacheKey(id)
                         .build()
 
-                    downloadData = Json.decodeFromString(metadata)
+                    val downloadData = Json.decodeFromString<DownloadData>(metadata)
+                    BilisoundHttpDataSource.headers = downloadData.headers
                     DownloadService.sendAddDownload(
                         context,
                         BilisoundDownloadService::class.java,
@@ -606,6 +604,7 @@ class BilisoundPlayerModule : Module() {
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            BilisoundHttpDataSource.headers = Json.decodeFromString(mediaItem?.mediaMetadata?.extras?.getString("headers") ?: "{}")
             if (mediaItem == null) {
                 this@BilisoundPlayerModule.sendEvent(EVENT_TRACK_CHANGE, bundleOf(
                     "track" to null

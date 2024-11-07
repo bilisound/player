@@ -25,7 +25,7 @@ data class TrackData(
      */
     val duration: Long?,
     /**
-     * HTTP Headers, stored in JSON key-value pair.
+     * HTTP Headers, stored in key-value pair.
      *
      * Example:
      *

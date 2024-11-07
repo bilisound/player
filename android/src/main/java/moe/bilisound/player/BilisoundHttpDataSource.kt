@@ -8,9 +8,15 @@ import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.HttpDataSource
 import androidx.media3.datasource.TransferListener
 
+
 class BilisoundHttpDataSource private constructor(
     private val defaultHttpDataSource: DefaultHttpDataSource
 ) : HttpDataSource {
+    companion object {
+        // todo 这样做在多线程下载真的没问题吗？目前还没有验证
+        var headers: Map<String, String> = mapOf()
+    }
+
     // 工厂类
     class Factory : HttpDataSource.Factory {
         private val defaultFactory = DefaultHttpDataSource.Factory()
@@ -33,11 +39,8 @@ class BilisoundHttpDataSource private constructor(
     }
 
     override fun open(dataSpec: DataSpec): Long {
-        BilisoundPlayerModule.downloadData?.let {
-            val handledSpec = dataSpec.withAdditionalHeaders(it.headers)
-            return defaultHttpDataSource.open(handledSpec)
-        }
-        throw Exception("试图在没有设定 BilisoundPlayerModule.downloadData 的情况下进行下载操作")
+        val handledSpec = dataSpec.withAdditionalHeaders(headers)
+        return defaultHttpDataSource.open(handledSpec)
     }
 
 
