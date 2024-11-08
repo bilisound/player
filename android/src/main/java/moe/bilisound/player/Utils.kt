@@ -1,13 +1,16 @@
-package moe.bilisound.player
+@file:OptIn(UnstableApi::class) package moe.bilisound.player
 
 import android.net.Uri
 import android.os.Bundle
+import androidx.annotation.OptIn
 import androidx.core.os.bundleOf
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.offline.Download
 import kotlinx.serialization.json.Json
+import org.json.JSONObject
 
-@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 fun createMediaItemFromTrack(json: String): MediaItem {
     val output = Json.decodeFromString<TrackData>(json)
 
@@ -47,7 +50,6 @@ fun createMediaItemFromTrack(json: String): MediaItem {
     return testItem
 }
 
-@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 fun mediaItemToBundle(mediaItem: MediaItem): Bundle {
     val metadata = mediaItem.mediaMetadata
     return bundleOf(
@@ -59,5 +61,25 @@ fun mediaItemToBundle(mediaItem: MediaItem): Bundle {
         "duration" to (metadata.durationMs?.div(1000) ?: 0),
         "headers" to metadata.extras?.getString("headers"),
         "extendedData" to metadata.extras?.getString("extendedData")
+    )
+}
+
+fun downloadToJSONObject(download: Download): JSONObject {
+    return JSONObject().apply {
+        put("id", download.request.id)
+        put("uri", download.request.uri.toString())
+        put("bytesDownloaded", download.bytesDownloaded)
+        put("bytesTotal", download.contentLength)
+        put("state", download.state)
+    }
+}
+
+fun downloadToBundle(download: Download): Bundle {
+    return bundleOf(
+        "id" to download.request.id,
+        "uri" to download.request.uri.toString(),
+        "bytesDownloaded" to download.bytesDownloaded,
+        "bytesTotal" to download.contentLength,
+        "state" to download.state
     )
 }

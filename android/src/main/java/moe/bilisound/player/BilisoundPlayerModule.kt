@@ -23,6 +23,7 @@ import androidx.media3.exoplayer.offline.DownloadManager
 import androidx.media3.exoplayer.offline.DownloadNotificationHelper
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
+import androidx.media3.exoplayer.scheduler.Requirements
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
@@ -149,12 +150,14 @@ class BilisoundPlayerModule : Module() {
         OnStartObserving {
             mainHandler.post {
                 getController().addListener(playerListener)
+                getDownloadManager(context.applicationContext).addListener(downloadListener)
             }
         }
 
         OnStopObserving {
             mainHandler.post {
                 getController().removeListener(playerListener)
+                getDownloadManager(context.applicationContext).removeListener(downloadListener)
             }
         }
 
@@ -554,14 +557,7 @@ class BilisoundPlayerModule : Module() {
                     val downloads = JSONArray()
 
                     while (downloadIndex.moveToNext()) {
-                        val download = downloadIndex.download
-                        downloads.put(JSONObject().apply {
-                            put("id", download.request.id)
-                            put("uri", download.request.uri.toString())
-                            put("bytesDownloaded", download.bytesDownloaded)
-                            put("bytesTotal", download.contentLength)
-                            put("state", download.state)
-                        })
+                        downloads.put(downloadToJSONObject(downloadIndex.download))
                     }
                     downloadIndex.close()
                     
@@ -730,6 +726,45 @@ class BilisoundPlayerModule : Module() {
             this@BilisoundPlayerModule.sendEvent(EVENT_TRACK_CHANGE, bundleOf(
                 "track" to mediaItemToBundle(mediaItem)
             ))
+        }
+    }
+
+    private val downloadListener = object : DownloadManager.Listener {
+        /*override fun onIdle(downloadManager: DownloadManager) {
+            super.onIdle(downloadManager)
+        }
+
+        override fun onInitialized(downloadManager: DownloadManager) {
+            super.onInitialized(downloadManager)
+        }*/
+
+        override fun onDownloadRemoved(downloadManager: DownloadManager, download: Download) {
+        }
+
+        override fun onDownloadsPausedChanged(
+            downloadManager: DownloadManager,
+            downloadsPaused: Boolean
+        ) {
+        }
+
+        override fun onDownloadChanged(
+            downloadManager: DownloadManager,
+            download: Download,
+            finalException: java.lang.Exception?
+        ) {
+        }
+
+        override fun onWaitingForRequirementsChanged(
+            downloadManager: DownloadManager,
+            waitingForRequirements: Boolean
+        ) {
+        }
+
+        override fun onRequirementsStateChanged(
+            downloadManager: DownloadManager,
+            requirements: Requirements,
+            notMetRequirements: Int
+        ) {
         }
     }
 }
