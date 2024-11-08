@@ -148,13 +148,13 @@ class BilisoundPlayerModule : Module() {
 
         OnStartObserving {
             mainHandler.post {
-                getController().addListener(listener)
+                getController().addListener(playerListener)
             }
         }
 
         OnStopObserving {
             mainHandler.post {
-                getController().removeListener(listener)
+                getController().removeListener(playerListener)
             }
         }
 
@@ -661,7 +661,7 @@ class BilisoundPlayerModule : Module() {
         this@BilisoundPlayerModule.sendEvent(EVENT_QUEUE_CHANGE, null)
     }
 
-    private val listener = object : Player.Listener {
+    private val playerListener = object : Player.Listener {
         override fun onPlayerError(error: PlaybackException) {
             val cause = error.cause
             if (cause is HttpDataSource.HttpDataSourceException) {
