@@ -261,7 +261,9 @@ export function Control() {
       <Button onPress={handleGetAllTracks} title="Get All Tracks" />
       <Button
         onPress={async () => {
-          console.log(await BilisoundPlayer.getDownloads());
+          const res = await BilisoundPlayer.getDownloads();
+          console.log(res);
+          console.log(typeof res);
         }}
         title="get current downloads"
       />

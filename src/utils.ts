@@ -47,6 +47,7 @@ interface CreateSubscriptionStoreConfig<T> {
   fetchData: () => Promise<T>;
   addListener: typeof addListener;
   initialValue: T;
+  interval?: number;
 }
 
 /**
@@ -55,16 +56,19 @@ interface CreateSubscriptionStoreConfig<T> {
  * @param fetchData
  * @param addListener
  * @param initialValue
+ * @param interval 自动刷新间隔，不指定则不会自动刷新
  */
 export function createSubscriptionStore<T>({
   eventName,
   fetchData,
   addListener,
   initialValue,
+  interval,
 }: CreateSubscriptionStoreConfig<T>) {
   const progressListeners: Set<() => void> = new Set();
   let currentValue: T = initialValue;
   let subscription: Subscription | undefined = undefined;
+  let timer: ReturnType<typeof setTimeout> | null = null;
 
   const doFetch = async () => {
     currentValue = await fetchData();
@@ -74,11 +78,18 @@ export function createSubscriptionStore<T>({
   const startFetching = () => {
     subscription = addListener(eventName, doFetch);
     doFetch();
+    if (typeof interval === "number" && timer === null) {
+      timer = setInterval(doFetch, interval);
+    }
   };
 
   const stopFetching = () => {
     subscription?.remove();
     subscription = undefined;
+    if (typeof timer === "number") {
+      clearInterval(timer);
+      timer = null;
+    }
   };
 
   const subscribe = (listener: () => void) => {

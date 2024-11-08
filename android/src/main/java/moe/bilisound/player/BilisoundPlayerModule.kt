@@ -120,7 +120,10 @@ class BilisoundPlayerModule : Module() {
             EVENT_PLAYBACK_ERROR,
             EVENT_QUEUE_CHANGE,
             EVENT_TRACK_CHANGE,
-            EVENT_IS_PLAYING_CHANGE
+            EVENT_IS_PLAYING_CHANGE,
+            EVENT_DOWNLOAD_STATUS_CHANGE,
+            EVENT_DOWNLOAD_REMOVE,
+            EVENT_DOWNLOAD_GLOBAL_STATE_CHANGE
         )
 
         OnCreate {
@@ -545,6 +548,19 @@ class BilisoundPlayerModule : Module() {
             }
         }
 
+        AsyncFunction("getDownload") { id: String, promise: Promise ->
+            mainHandler.post {
+                try {
+                    val downloadManager = getDownloadManager(context.applicationContext)
+                    val download = downloadManager.downloadIndex.getDownload(id)
+
+                    promise.resolve(download?.let { downloadToJSONObject(it) })
+                } catch (e: Exception) {
+                    promise.reject("DOWNLOADER_ERROR", "无法获取下载内容：${e.message}", e)
+                }
+            }
+        }
+
         AsyncFunction("getDownloads") { state: DownloadState?, promise: Promise ->
             mainHandler.post {
                 try {
@@ -738,20 +754,34 @@ class BilisoundPlayerModule : Module() {
             super.onInitialized(downloadManager)
         }*/
 
+        override fun onDownloadChanged(
+            downloadManager: DownloadManager,
+            download: Download,
+            finalException: java.lang.Exception?
+        ) {
+            this@BilisoundPlayerModule.sendEvent(
+                EVENT_DOWNLOAD_STATUS_CHANGE, bundleOf(
+                    "download" to downloadToBundle(download),
+                    "error" to finalException?.message
+                ))
+        }
+
         override fun onDownloadRemoved(downloadManager: DownloadManager, download: Download) {
+            this@BilisoundPlayerModule.sendEvent(
+                EVENT_DOWNLOAD_REMOVE, bundleOf(
+                "download" to downloadToBundle(download)
+            ))
         }
 
         override fun onDownloadsPausedChanged(
             downloadManager: DownloadManager,
             downloadsPaused: Boolean
         ) {
-        }
-
-        override fun onDownloadChanged(
-            downloadManager: DownloadManager,
-            download: Download,
-            finalException: java.lang.Exception?
-        ) {
+            this@BilisoundPlayerModule.sendEvent(
+                EVENT_DOWNLOAD_GLOBAL_STATE_CHANGE, bundleOf(
+                    "downloadsPaused" to downloadsPaused
+                )
+            )
         }
 
         override fun onWaitingForRequirementsChanged(

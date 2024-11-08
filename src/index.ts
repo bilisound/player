@@ -214,7 +214,14 @@ export async function addDownload(
 }
 
 /**
- * 查询下载项
+ * 查询单个下载项
+ */
+export async function getDownload(id: string): Promise<DownloadItem> {
+  return JSON.parse(await BilisoundPlayerModule.getDownload(id));
+}
+
+/**
+ * 查询符合条件的下载项列表
  * @param state
  */
 export async function getDownloads(

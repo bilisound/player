@@ -29,6 +29,21 @@ const val EVENT_TRACK_CHANGE = "onTrackChange"
  */
 const val EVENT_IS_PLAYING_CHANGE = "onIsPlayingChange"
 
+/**
+ * 下载内容状态变更
+ */
+const val EVENT_DOWNLOAD_STATUS_CHANGE = "onDownloadStatusChange"
+
+/**
+ * 下载内容删除
+ */
+const val EVENT_DOWNLOAD_REMOVE = "onDownloadRemove"
+
+/**
+ * 全局下载状态变更
+ */
+const val EVENT_DOWNLOAD_GLOBAL_STATE_CHANGE = "onDownloadGlobalStatusChange"
+
 // ============================================================================
 // 播放状态
 // ============================================================================
