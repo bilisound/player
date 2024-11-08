@@ -219,14 +219,44 @@ export async function addDownload(
  */
 export async function getDownloads(
   state?: (typeof DownloadState)[keyof typeof DownloadState],
-): Promise<any> {
+): Promise<DownloadItem[]> {
   return JSON.parse(await BilisoundPlayerModule.getDownloads(state));
+}
+
+/**
+ * 暂停下载项
+ * @param id
+ */
+export async function pauseDownload(id: string): Promise<void> {
+  return BilisoundPlayerModule.pauseDownload(id);
+}
+
+/**
+ * 恢复下载项
+ * @param id
+ */
+export async function resumeDownload(id: string): Promise<void> {
+  return BilisoundPlayerModule.pauseDownload(id);
+}
+
+/**
+ * 暂停全部下载项
+ */
+export async function pauseAllDownloads(): Promise<void> {
+  return BilisoundPlayerModule.pauseAllDownloads();
+}
+
+/**
+ * 恢复全部下载项
+ */
+export async function resumeAllDownloads(): Promise<void> {
+  return BilisoundPlayerModule.resumeAllDownloads();
 }
 
 /**
  * 移除下载项
  * @param id
  */
-export async function removeDownload(id: string): Promise<DownloadItem[]> {
-  return JSON.parse(await BilisoundPlayerModule.removeDownload(id));
+export async function removeDownload(id: string): Promise<void> {
+  return BilisoundPlayerModule.removeDownload(id);
 }

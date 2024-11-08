@@ -572,6 +572,74 @@ class BilisoundPlayerModule : Module() {
             }
         }
 
+        AsyncFunction("pauseDownload") { id: String, promise: Promise ->
+            mainHandler.post {
+                try {
+                    // Set the stop reason for a single download.
+                    DownloadService.sendSetStopReason(
+                        context,
+                        BilisoundDownloadService::class.java,
+                        id,
+                        1,
+                        /* foreground= */ false
+                    )
+                    promise.resolve()
+                } catch (e: Exception) {
+                    promise.reject("DOWNLOADER_ERROR", "无法暂停所请求的下载任务：${e.message}", e)
+                }
+            }
+        }
+
+        AsyncFunction("resumeDownload") { id: String, promise: Promise ->
+            mainHandler.post {
+                try {
+                    // Set the stop reason for a single download.
+                    DownloadService.sendSetStopReason(
+                        context,
+                        BilisoundDownloadService::class.java,
+                        id,
+                        Download.STOP_REASON_NONE,
+                        /* foreground= */ false
+                    )
+                    promise.resolve()
+                } catch (e: Exception) {
+                    promise.reject("DOWNLOADER_ERROR", "无法恢复所请求的下载任务：${e.message}", e)
+                }
+            }
+        }
+
+        AsyncFunction("pauseAllDownloads") { promise: Promise ->
+            mainHandler.post {
+                try {
+                    // Pause all downloads.
+                    DownloadService.sendPauseDownloads(
+                        context,
+                        BilisoundDownloadService::class.java,
+                        /* foreground= */ false
+                    )
+                    promise.resolve()
+                } catch (e: Exception) {
+                    promise.reject("DOWNLOADER_ERROR", "无法暂停全部下载任务：${e.message}", e)
+                }
+            }
+        }
+
+        AsyncFunction("resumeAllDownloads") { promise: Promise ->
+            mainHandler.post {
+                try {
+                    // Resume all downloads.
+                    DownloadService.sendResumeDownloads(
+                        context,
+                        BilisoundDownloadService::class.java,
+                        /* foreground= */ false
+                    )
+                    promise.resolve()
+                } catch (e: Exception) {
+                    promise.reject("DOWNLOADER_ERROR", "无法恢复全部下载任务：${e.message}", e)
+                }
+            }
+        }
+
         AsyncFunction("removeDownload") { id: String, promise: Promise ->
             mainHandler.post {
                 try {
@@ -583,7 +651,7 @@ class BilisoundPlayerModule : Module() {
                     )
                     promise.resolve()
                 } catch (e: Exception) {
-                    promise.reject("DOWNLOADER_ERROR", "无法移除所请求的文件：${e.message}", e)
+                    promise.reject("DOWNLOADER_ERROR", "无法移除所请求的下载任务：${e.message}", e)
                 }
             }
         }
