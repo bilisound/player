@@ -225,7 +225,7 @@ export async function getDownload(id: string): Promise<DownloadItem> {
  * @param state
  */
 export async function getDownloads(
-  state?: (typeof DownloadState)[keyof typeof DownloadState],
+  state?: DownloadState,
 ): Promise<DownloadItem[]> {
   return JSON.parse(await BilisoundPlayerModule.getDownloads(state));
 }

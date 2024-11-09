@@ -30,19 +30,9 @@ const val EVENT_TRACK_CHANGE = "onTrackChange"
 const val EVENT_IS_PLAYING_CHANGE = "onIsPlayingChange"
 
 /**
- * 下载内容状态变更
+ * 下载状态更新
  */
-const val EVENT_DOWNLOAD_STATUS_CHANGE = "onDownloadStatusChange"
-
-/**
- * 下载内容删除
- */
-const val EVENT_DOWNLOAD_REMOVE = "onDownloadRemove"
-
-/**
- * 全局下载状态变更
- */
-const val EVENT_DOWNLOAD_GLOBAL_STATE_CHANGE = "onDownloadGlobalStatusChange"
+const val EVENT_DOWNLOAD_UPDATE = "onDownloadUpdate"
 
 // ============================================================================
 // 播放状态
@@ -52,6 +42,14 @@ const val STATE_IDLE = "STATE_IDLE"
 const val STATE_BUFFERING = "STATE_BUFFERING"
 const val STATE_READY = "STATE_READY"
 const val STATE_ENDED = "STATE_ENDED"
+
+// ============================================================================
+// 下载状态
+// ============================================================================
+
+const val DOWNLOAD_CHANGE = "DOWNLOAD_CHANGE"
+const val DOWNLOAD_REMOVE = "DOWNLOAD_REMOVE"
+const val DOWNLOAD_GLOBAL_STATE_CHANGE = "DOWNLOAD_GLOBAL_STATE_CHANGE"
 
 // ============================================================================
 // 错误信息

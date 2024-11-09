@@ -26,6 +26,14 @@ export interface DownloadData {
   headers: Record<string, string>;
 }
 
+export interface Download {
+  bytesDownloaded: number;
+  bytesTotal: number;
+  id: string;
+  state: number;
+  uri: string;
+}
+
 export interface PlaybackProgress {
   duration: number;
   position: number;
@@ -46,28 +54,28 @@ export type ErrorType =
   | "ERROR_GENERIC";
 
 // 下载状态字典
-export const DownloadState = {
+export enum DownloadState {
   /** The download is waiting to be started. */
-  STATE_QUEUED: 0,
+  STATE_QUEUED = 0,
 
   /** The download is stopped for a specified. */
-  STATE_STOPPED: 1,
+  STATE_STOPPED = 1,
 
   /** The download is currently started. */
-  STATE_DOWNLOADING: 2,
+  STATE_DOWNLOADING = 2,
 
   /** The download completed. */
-  STATE_COMPLETED: 3,
+  STATE_COMPLETED = 3,
 
   /** The download failed. */
-  STATE_FAILED: 4,
+  STATE_FAILED = 4,
 
   /** The download is being removed. */
-  STATE_REMOVING: 5,
+  STATE_REMOVING = 5,
 
   /** The download will restart after all downloaded data is removed. */
-  STATE_RESTARTING: 7,
-};
+  STATE_RESTARTING = 7,
+}
 
 /**
  * 下载项目
@@ -100,10 +108,26 @@ export interface IsPlayingChangeEvent {
   isPlaying: boolean;
 }
 
+export type DownloadUpdateEvent =
+  | {
+      type: "DOWNLOAD_CHANGE";
+      download: Download;
+      error?: string | null;
+    }
+  | {
+      type: "DOWNLOAD_REMOVE";
+      download: Download;
+    }
+  | {
+      type: "DOWNLOAD_GLOBAL_STATE_CHANGE";
+      paused: boolean;
+    };
+
 export interface EventList {
   onPlaybackStateChange: PlaybackStateChangeEvent;
   onPlaybackError: PlaybackErrorEvent;
   onQueueChange: null;
   onTrackChange: TrackChangeEvent;
   onIsPlayingChange: IsPlayingChangeEvent;
+  onDownloadUpdate: DownloadUpdateEvent;
 }

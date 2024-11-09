@@ -46,6 +46,7 @@ class BilisoundPlayerModule : Module() {
         private var databaseProvider: DatabaseProvider? = null
         private var downloadCache: SimpleCache? = null
         private var dataSourceFactory: BilisoundHttpDataSource.Factory? = null
+        private var downloadManager: DownloadManager? = null
 
         @Synchronized
         fun getDownloadCache(context: Context): SimpleCache {
@@ -87,17 +88,20 @@ class BilisoundPlayerModule : Module() {
         }
 
         fun getDownloadManager(context: Context): DownloadManager {
+            if (downloadManager != null) {
+                return downloadManager!!
+            }
             val databaseProvider = getDatabaseProvider(context)
             val downloadCache = getDownloadCache(context)
             val dataSourceFactory = getDataSourceFactory()
             val downloadExecutor = Executor(Runnable::run)
 
             // Create the download manager.
-            val downloadManager =
+            downloadManager =
                 DownloadManager(context, databaseProvider, downloadCache, dataSourceFactory, downloadExecutor)
 
             Log.d(TAG, "下载管理器初始化！")
-            return downloadManager
+            return downloadManager!!
         }
     }
 
@@ -121,9 +125,7 @@ class BilisoundPlayerModule : Module() {
             EVENT_QUEUE_CHANGE,
             EVENT_TRACK_CHANGE,
             EVENT_IS_PLAYING_CHANGE,
-            EVENT_DOWNLOAD_STATUS_CHANGE,
-            EVENT_DOWNLOAD_REMOVE,
-            EVENT_DOWNLOAD_GLOBAL_STATE_CHANGE
+            EVENT_DOWNLOAD_UPDATE
         )
 
         OnCreate {
@@ -746,21 +748,14 @@ class BilisoundPlayerModule : Module() {
     }
 
     private val downloadListener = object : DownloadManager.Listener {
-        /*override fun onIdle(downloadManager: DownloadManager) {
-            super.onIdle(downloadManager)
-        }
-
-        override fun onInitialized(downloadManager: DownloadManager) {
-            super.onInitialized(downloadManager)
-        }*/
-
         override fun onDownloadChanged(
             downloadManager: DownloadManager,
             download: Download,
             finalException: java.lang.Exception?
         ) {
             this@BilisoundPlayerModule.sendEvent(
-                EVENT_DOWNLOAD_STATUS_CHANGE, bundleOf(
+                EVENT_DOWNLOAD_UPDATE, bundleOf(
+                    "type" to DOWNLOAD_CHANGE,
                     "download" to downloadToBundle(download),
                     "error" to finalException?.message
                 ))
@@ -768,8 +763,9 @@ class BilisoundPlayerModule : Module() {
 
         override fun onDownloadRemoved(downloadManager: DownloadManager, download: Download) {
             this@BilisoundPlayerModule.sendEvent(
-                EVENT_DOWNLOAD_REMOVE, bundleOf(
-                "download" to downloadToBundle(download)
+                EVENT_DOWNLOAD_UPDATE, bundleOf(
+                    "type" to DOWNLOAD_REMOVE,
+                    "download" to downloadToBundle(download)
             ))
         }
 
@@ -778,8 +774,9 @@ class BilisoundPlayerModule : Module() {
             downloadsPaused: Boolean
         ) {
             this@BilisoundPlayerModule.sendEvent(
-                EVENT_DOWNLOAD_GLOBAL_STATE_CHANGE, bundleOf(
-                    "downloadsPaused" to downloadsPaused
+                EVENT_DOWNLOAD_UPDATE, bundleOf(
+                    "type" to DOWNLOAD_GLOBAL_STATE_CHANGE,
+                    "paused" to downloadsPaused
                 )
             )
         }

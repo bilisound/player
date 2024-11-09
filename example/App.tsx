@@ -3,9 +3,10 @@ import { useState } from "react";
 import { Button, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { Control } from "~/components/Control";
+import { Downloads } from "~/components/Downloads";
 import { Playlist } from "~/components/Playlist";
 
-type Pages = "control" | "playlist";
+type Pages = "control" | "playlist" | "downloads";
 
 setDefaultHeaders({
   "User-Agent":
@@ -22,9 +23,11 @@ export default function App() {
         <View style={styles.row}>
           <Button onPress={() => setPage("control")} title="Control" />
           <Button onPress={() => setPage("playlist")} title="Playlist" />
+          <Button onPress={() => setPage("downloads")} title="Downloads" />
         </View>
         {page === "control" && <Control />}
         {page === "playlist" && <Playlist />}
+        {page === "downloads" && <Downloads />}
       </View>
     </ScrollView>
   );

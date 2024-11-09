@@ -4,7 +4,6 @@ import { useEvents } from "bilisound-player/hooks/useEvents";
 import { useIsPlaying } from "bilisound-player/hooks/useIsPlaying";
 import { usePlaybackState } from "bilisound-player/hooks/usePlaybackState";
 import { useProgress } from "bilisound-player/hooks/useProgress";
-import { DownloadState } from "bilisound-player/types";
 import { Button, StyleSheet, Text, ToastAndroid, View } from "react-native";
 
 import {
