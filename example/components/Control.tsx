@@ -11,8 +11,8 @@ import {
   getBilisoundResourceUrl,
   getVideoUrl,
 } from "~/api/bilisound";
-
-const HOST = "192.168.247.95";
+import { AddCustom } from "~/components/AddCustom";
+import { TEST_HOST } from "~/constants/network";
 
 async function addBiliTrack(id: string, episode = 1) {
   const info = await getBilisoundMetadata({ id });
@@ -72,6 +72,7 @@ export function Control() {
         }
         title="Console Log Current Track"
       />
+      <AddCustom onSubmit={(e) => addBiliTrack(e.trim())} />
       <View style={styles.row}>
         <Button
           onPress={async () => {
@@ -109,7 +110,7 @@ export function Control() {
           onPress={async () => {
             await BilisoundPlayer.addTrack({
               id: "test_track_5",
-              uri: `http://${HOST}:8080/%E5%AE%89%E4%BA%95%E6%B4%8B%E4%BB%8B/%E3%81%BE%E3%82%82%E3%82%8B%E3%82%AF%E3%83%B3%E3%81%AF%E5%91%AA%E3%82%8F%E3%82%8C%E3%81%A6%E3%81%97%E3%81%BE%E3%81%A3%E3%81%9F%EF%BC%81%E3%82%A2%E3%83%AC%E3%83%B3%E3%82%B7%E3%82%99%E3%83%88%E3%83%A9%E3%83%83%E3%82%AF%E3%82%B9/05%20YO-KAI%20Disco%20(%E5%86%A5%E7%95%8C%E5%85%A5%E5%8F%A3%E3%83%AF%E3%83%BC%E3%83%AB%E3%83%89).m4a`,
+              uri: `${TEST_HOST}/%E5%AE%89%E4%BA%95%E6%B4%8B%E4%BB%8B/%E3%81%BE%E3%82%82%E3%82%8B%E3%82%AF%E3%83%B3%E3%81%AF%E5%91%AA%E3%82%8F%E3%82%8C%E3%81%A6%E3%81%97%E3%81%BE%E3%81%A3%E3%81%9F%EF%BC%81%E3%82%A2%E3%83%AC%E3%83%B3%E3%82%B7%E3%82%99%E3%83%88%E3%83%A9%E3%83%83%E3%82%AF%E3%82%B9/05%20YO-KAI%20Disco%20(%E5%86%A5%E7%95%8C%E5%85%A5%E5%8F%A3%E3%83%AF%E3%83%BC%E3%83%AB%E3%83%89).m4a`,
               headers: {
                 "User-Agent": "zehuoge",
               },
@@ -121,7 +122,7 @@ export function Control() {
           onPress={async () => {
             await BilisoundPlayer.addTrack({
               id: "test_track_6",
-              uri: `http://${HOST}:8080/%E5%AE%89%E4%BA%95%E6%B4%8B%E4%BB%8B/%E3%81%BE%E3%82%82%E3%82%8B%E3%82%AF%E3%83%B3%E3%81%AF%E5%91%AA%E3%82%8F%E3%82%8C%E3%81%A6%E3%81%97%E3%81%BE%E3%81%A3%E3%81%9F%EF%BC%81%E3%82%A2%E3%83%AC%E3%83%B3%E3%82%B7%E3%82%99%E3%83%88%E3%83%A9%E3%83%83%E3%82%AF%E3%82%B9/06%20Blossom%20Shower%20(%E6%A1%9C%E3%81%AE%E5%8F%A4%E9%83%B7%E3%83%AF%E3%83%BC%E3%83%AB%E3%83%89%E3%83%BB%E5%89%8D%E5%8D%8A).m4a`,
+              uri: `${TEST_HOST}/%E5%AE%89%E4%BA%95%E6%B4%8B%E4%BB%8B/%E3%81%BE%E3%82%82%E3%82%8B%E3%82%AF%E3%83%B3%E3%81%AF%E5%91%AA%E3%82%8F%E3%82%8C%E3%81%A6%E3%81%97%E3%81%BE%E3%81%A3%E3%81%9F%EF%BC%81%E3%82%A2%E3%83%AC%E3%83%B3%E3%82%B7%E3%82%99%E3%83%88%E3%83%A9%E3%83%83%E3%82%AF%E3%82%B9/06%20Blossom%20Shower%20(%E6%A1%9C%E3%81%AE%E5%8F%A4%E9%83%B7%E3%83%AF%E3%83%BC%E3%83%AB%E3%83%89%E3%83%BB%E5%89%8D%E5%8D%8A).m4a`,
               headers: {
                 "User-Agent": "zehuoge",
               },

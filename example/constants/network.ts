@@ -8,3 +8,5 @@ export const BILIBILI_GOOD_CDN_REGEX: readonly RegExp[] = [
 ];
 
 export const BILISOUND_API_PREFIX = process.env.EXPO_PUBLIC_API_URL;
+
+export const TEST_HOST = "http://192.168.247.95:8080";
