@@ -97,8 +97,10 @@ class BilisoundPlayerModule : Module() {
             val downloadExecutor = Executor(Runnable::run)
 
             // Create the download manager.
-            downloadManager =
+            val newlyDownloadManager =
                 DownloadManager(context, databaseProvider, downloadCache, dataSourceFactory, downloadExecutor)
+            newlyDownloadManager.maxParallelDownloads = 1
+            downloadManager = newlyDownloadManager
 
             Log.d(TAG, "下载管理器初始化！")
             return downloadManager!!
