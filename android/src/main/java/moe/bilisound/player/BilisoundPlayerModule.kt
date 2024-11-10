@@ -534,6 +534,7 @@ class BilisoundPlayerModule : Module() {
             mainHandler.post {
                 try {
                     val downloadRequest = DownloadRequest.Builder(id, Uri.parse(uri))
+                        .setData(metadata.toByteArray())
                         .setCustomCacheKey(id)
                         .build()
 
