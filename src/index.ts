@@ -1,3 +1,5 @@
+import { AppRegistry, Platform } from "react-native";
+
 import { BilisoundPlayerModule } from "./BilisoundPlayerModule";
 import {
   DownloadData,
@@ -22,6 +24,22 @@ export class Config {
  */
 export function setDefaultHeaders(defaultHeaders: Record<string, string>) {
   Config.instance.defaultHeaders = defaultHeaders;
+}
+
+/**
+ * 激活服务
+ * @param factory
+ */
+export function registerPlaybackService(factory: () => () => Promise<void>) {
+  if (Platform.OS === "android") {
+    AppRegistry.registerHeadlessTask("BilisoundPlayer", factory);
+    return;
+  }
+  if (Platform.OS === "web") {
+    factory()();
+    return;
+  }
+  setImmediate(factory());
 }
 
 /**

@@ -17,7 +17,6 @@ import { TEST_HOST } from "~/constants/network";
 async function addBiliTrack(id: string, episode = 1) {
   const info = await getBilisoundMetadata({ id });
   const res = await getBilisoundResourceUrl({ id, episode });
-  console.log(res);
   await BilisoundPlayer.addTracks([
     {
       id: `bs_${id}_${episode}`,
@@ -172,14 +171,6 @@ export function Control() {
         title="Delete Track index 2, 1"
       />
       <Button onPress={handleGetAllTracks} title="Get All Tracks" />
-      <Button
-        onPress={async () => {
-          const res = await BilisoundPlayer.getDownloads();
-          console.log(res);
-          console.log(typeof res);
-        }}
-        title="get current downloads"
-      />
     </View>
   );
 }

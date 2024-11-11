@@ -1,6 +1,14 @@
 import { setDefaultHeaders } from "bilisound-player";
+import { addListener } from "bilisound-player/events";
 import { useState } from "react";
-import { Button, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  Button,
+  ScrollView,
+  StyleSheet,
+  Text,
+  ToastAndroid,
+  View,
+} from "react-native";
 
 import { Control } from "~/components/Control";
 import { Downloads } from "~/components/Downloads";
@@ -12,6 +20,19 @@ setDefaultHeaders({
   "User-Agent":
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
 });
+
+setTimeout(() => {
+  ToastAndroid.show("任务已挂载", ToastAndroid.LONG);
+  addListener("onPlaybackError", (e) => {
+    console.log("onPlaybackError", e);
+  });
+
+  addListener("onTrackChange", (e) => {
+    console.log("onTrackChange", e);
+  });
+}, 5000);
+
+console.log("RN 程序初始化完毕");
 
 export default function App() {
   const [page, setPage] = useState<Pages>("control");

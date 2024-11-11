@@ -31,6 +31,7 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import expo.modules.interfaces.taskManager.TaskManagerInterface
 import expo.modules.kotlin.Promise
 import expo.modules.kotlin.exception.Exceptions
 import expo.modules.kotlin.modules.Module
@@ -155,6 +156,11 @@ class BilisoundPlayerModule : Module() {
         return controller
     }
 
+    private val taskManager: TaskManagerInterface by lazy {
+        return@lazy appContext.legacyModule<TaskManagerInterface>()
+            ?: throw TaskManagerNotFoundException()
+    }
+
     @OptIn(UnstableApi::class)
     override fun definition() = ModuleDefinition {
         Name("BilisoundPlayer")
@@ -169,6 +175,7 @@ class BilisoundPlayerModule : Module() {
         )
 
         OnCreate {
+            Log.d(TAG, "definition: 执行主程序初始化操作！")
             mainHandler.post {
                 val sessionToken =
                     SessionToken(context, ComponentName(context, BilisoundPlaybackService::class.java))
@@ -186,13 +193,17 @@ class BilisoundPlayerModule : Module() {
         }
 
         OnDestroy {
+            Log.d(TAG, "definition: 执行主程序销毁操作！")
             mainHandler.post {
                 val controller = getController()
+                controller.removeListener(playerListener)
+                getDownloadManager(context.applicationContext).removeListener(downloadListener)
                 controller.release()
             }
         }
 
         OnStartObserving {
+            Log.d(TAG, "definition: 执行监听器初始化操作！")
             mainHandler.post {
                 getController().addListener(playerListener)
                 getDownloadManager(context.applicationContext).addListener(downloadListener)
@@ -200,10 +211,12 @@ class BilisoundPlayerModule : Module() {
         }
 
         OnStopObserving {
+            // 因为播放器事件在库内部还有用，所以实际上不能当 RN 端没有监听事件时就移除监听器
+            /*Log.d(TAG, "definition: 执行监听器停止操作！")
             mainHandler.post {
                 getController().removeListener(playerListener)
                 getDownloadManager(context.applicationContext).removeListener(downloadListener)
-            }
+            }*/
         }
 
         AsyncFunction("play") { promise: Promise ->
@@ -789,7 +802,8 @@ class BilisoundPlayerModule : Module() {
                 ))
                 return
             }
-            setHeadersOnBank(mediaItem.mediaId, Json.decodeFromString(mediaItem?.mediaMetadata?.extras?.getString("headers") ?: "{}"))
+            Log.d(TAG, "onMediaItemTransition: 正在运行 setHeadersOnBank: ${mediaItem.mediaId}")
+            setHeadersOnBank(mediaItem.mediaId, Json.decodeFromString(mediaItem.mediaMetadata.extras?.getString("headers") ?: "{}"))
             this@BilisoundPlayerModule.sendEvent(EVENT_TRACK_CHANGE, bundleOf(
                 "track" to mediaItemToBundle(mediaItem)
             ))

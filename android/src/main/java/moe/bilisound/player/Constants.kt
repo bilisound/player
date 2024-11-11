@@ -1,5 +1,7 @@
 package moe.bilisound.player
 
+const val BACKGROUND_PLAYBACK_TASK = "background_playback_task"
+
 // ============================================================================
 // 事件
 // ============================================================================
@@ -33,6 +35,11 @@ const val EVENT_IS_PLAYING_CHANGE = "onIsPlayingChange"
  * 下载状态更新
  */
 const val EVENT_DOWNLOAD_UPDATE = "onDownloadUpdate"
+
+/**
+ * 播放状态恢复
+ */
+const val EVENT_PLAYBACK_RESUME = "onPlaybackResume"
 
 // ============================================================================
 // 播放状态

@@ -2,6 +2,7 @@
 
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.cache.CacheDataSource
@@ -70,6 +71,7 @@ private class PlaybackCallback : MediaSession.Callback {
         mediaSession: MediaSession,
         controller: MediaSession.ControllerInfo
     ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
+        Log.d(TAG, "onPlaybackResumption: 用户试图唤醒播放器。mediaSession: $mediaSession, controller: $controller")
         // 创建一个立即完成的 Future，返回空的媒体项目列表和起始位置 0
         return Futures.immediateFuture(
             MediaSession.MediaItemsWithStartPosition(
