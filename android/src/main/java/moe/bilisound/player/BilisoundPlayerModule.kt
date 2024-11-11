@@ -15,7 +15,10 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.database.DatabaseProvider
 import androidx.media3.database.StandaloneDatabaseProvider
+import androidx.media3.datasource.DataSpec
+import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.HttpDataSource
+import androidx.media3.datasource.ResolvingDataSource
 import androidx.media3.datasource.cache.NoOpCacheEvictor
 import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.exoplayer.offline.Download
@@ -42,10 +45,11 @@ const val TAG = "BilisoundPlayerModule"
 
 class BilisoundPlayerModule : Module() {
     companion object {
+        // 下载管理器相关
         private var downloadNotificationHelper: DownloadNotificationHelper? = null
         private var databaseProvider: DatabaseProvider? = null
         private var downloadCache: SimpleCache? = null
-        private var dataSourceFactory: BilisoundHttpDataSource.Factory? = null
+        private var dataSourceFactory: ResolvingDataSource.Factory? = null
         private var downloadManager: DownloadManager? = null
 
         @Synchronized
@@ -60,6 +64,7 @@ class BilisoundPlayerModule : Module() {
             }
         }
 
+        @Synchronized
         fun getDatabaseProvider(context: Context): DatabaseProvider {
             Log.d(TAG, "数据库初始化！orig: $databaseProvider, context: $context")
             if (databaseProvider == null) {
@@ -80,13 +85,23 @@ class BilisoundPlayerModule : Module() {
             return downloadNotificationHelper!!
         }
 
-        fun getDataSourceFactory(): BilisoundHttpDataSource.Factory {
+        @Synchronized
+        fun getDataSourceFactory(): ResolvingDataSource.Factory {
             if (dataSourceFactory == null) {
-                dataSourceFactory = BilisoundHttpDataSource.Factory()
+                val httpDataSourceFactory = DefaultHttpDataSource.Factory()
+                dataSourceFactory = ResolvingDataSource.Factory(httpDataSourceFactory) { dataSpec: DataSpec ->
+                    val got = getHeadersOnBank(dataSpec.key ?: "")
+                    if (got != null) {
+                        Log.d(TAG, "getDataSourceFactory: 已经进行 header 消费操作。key: ${dataSpec.key}, got: $got")
+                        return@Factory dataSpec.withAdditionalHeaders(got)
+                    }
+                    return@Factory dataSpec
+                }
             }
             return dataSourceFactory!!
         }
 
+        @Synchronized
         fun getDownloadManager(context: Context): DownloadManager {
             if (downloadManager != null) {
                 return downloadManager!!
@@ -104,6 +119,29 @@ class BilisoundPlayerModule : Module() {
 
             Log.d(TAG, "下载管理器初始化！")
             return downloadManager!!
+        }
+
+        // 下载项目的 headers
+        private var headersBank: Map<String, Map<String, String>> = mapOf()
+
+        @Synchronized
+        fun getHeadersOnBank(key: String): Map<String, String>? {
+            return headersBank[key]
+        }
+
+        @Synchronized
+        fun setHeadersOnBank(key: String, headers: Map<String, String>) {
+            headersBank = headersBank + (key to headers)
+        }
+
+        @Synchronized
+        fun deleteHeadersOnBank(key: String) {
+            headersBank = headersBank - key
+        }
+
+        @Synchronized
+        fun clearHeadersOnBank() {
+            headersBank = mapOf()
         }
     }
 
@@ -539,7 +577,7 @@ class BilisoundPlayerModule : Module() {
                         .build()
 
                     val downloadData = Json.decodeFromString<DownloadData>(metadata)
-                    BilisoundHttpDataSource.headers = downloadData.headers
+                    setHeadersOnBank(id, downloadData.headers)
                     DownloadService.sendAddDownload(
                         context,
                         BilisoundDownloadService::class.java,
@@ -610,6 +648,14 @@ class BilisoundPlayerModule : Module() {
         AsyncFunction("resumeDownload") { id: String, promise: Promise ->
             mainHandler.post {
                 try {
+                    // 恢复 header 信息
+                    val downloadManager = getDownloadManager(context.applicationContext)
+                    val download = downloadManager.downloadIndex.getDownload(id)
+                    if (download != null) {
+                        val downloadData = Json.decodeFromString<DownloadData>(download.request.data.toString(Charsets.UTF_8))
+                        setHeadersOnBank(id, downloadData.headers)
+                    }
+
                     // Set the stop reason for a single download.
                     DownloadService.sendSetStopReason(
                         context,
@@ -737,13 +783,13 @@ class BilisoundPlayerModule : Module() {
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-            BilisoundHttpDataSource.headers = Json.decodeFromString(mediaItem?.mediaMetadata?.extras?.getString("headers") ?: "{}")
             if (mediaItem == null) {
                 this@BilisoundPlayerModule.sendEvent(EVENT_TRACK_CHANGE, bundleOf(
                     "track" to null
                 ))
                 return
             }
+            setHeadersOnBank(mediaItem.mediaId, Json.decodeFromString(mediaItem?.mediaMetadata?.extras?.getString("headers") ?: "{}"))
             this@BilisoundPlayerModule.sendEvent(EVENT_TRACK_CHANGE, bundleOf(
                 "track" to mediaItemToBundle(mediaItem)
             ))

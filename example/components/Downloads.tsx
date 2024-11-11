@@ -1,4 +1,8 @@
-import { pauseDownload, removeDownload } from "bilisound-player";
+import {
+  pauseDownload,
+  removeDownload,
+  resumeDownload,
+} from "bilisound-player";
 import * as BilisoundPlayer from "bilisound-player";
 import { useDownloadTasks } from "bilisound-player/hooks/useDownloadTasks";
 import { DownloadState } from "bilisound-player/types";
@@ -21,8 +25,6 @@ async function downloadBiliTrack(id: string, episode = 1) {
 
 export function Downloads() {
   const tasks = useDownloadTasks();
-
-  console.log(tasks.length);
 
   return (
     <View>
@@ -93,7 +95,7 @@ export function Downloads() {
           onPress={async () => {
             await BilisoundPlayer.addDownload(
               "test_track_large",
-              `https://ash-speed.hetzner.com/10GB.bin`,
+              `https://ash-speed.hetzner.com/1GB.bin`,
               {
                 headers: {
                   "User-Agent": "zehuoge",
@@ -125,7 +127,7 @@ export function Downloads() {
                   tasks.state !== DownloadState.STATE_COMPLETED && (
                     <Button
                       title={`Resume (${tasks.state})`}
-                      onPress={() => pauseDownload(tasks.id)}
+                      onPress={() => resumeDownload(tasks.id)}
                     />
                   )}
               </View>

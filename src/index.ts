@@ -243,7 +243,7 @@ export async function pauseDownload(id: string): Promise<void> {
  * @param id
  */
 export async function resumeDownload(id: string): Promise<void> {
-  return BilisoundPlayerModule.pauseDownload(id);
+  return BilisoundPlayerModule.resumeDownload(id);
 }
 
 /**

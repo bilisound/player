@@ -9,6 +9,8 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
 import java.util.concurrent.Executor
 
 class BilisoundPlaybackService : MediaSessionService() {
@@ -35,7 +37,7 @@ class BilisoundPlaybackService : MediaSessionService() {
             .setMediaSourceFactory(mediaSourceFactory)
             .build()
 
-        mediaSession = MediaSession.Builder(this, player).setId("moe.bilisound.player").build()
+        mediaSession = MediaSession.Builder(this, player).setId("moe.bilisound.player").setCallback(PlaybackCallback()).build()
         player.clearMediaItems()
         player.prepare()
     }
@@ -60,5 +62,21 @@ private class MainThreadExecutor : Executor {
     private val handler = Handler(Looper.getMainLooper())
     override fun execute(command: Runnable) {
         handler.post(command)
+    }
+}
+
+private class PlaybackCallback : MediaSession.Callback {
+    override fun onPlaybackResumption(
+        mediaSession: MediaSession,
+        controller: MediaSession.ControllerInfo
+    ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
+        // 创建一个立即完成的 Future，返回空的媒体项目列表和起始位置 0
+        return Futures.immediateFuture(
+            MediaSession.MediaItemsWithStartPosition(
+                /* mediaItems = */ emptyList(),
+                /* startIndex = */ 0,
+                /* startPositionMs = */ 0L
+            )
+        )
     }
 }
