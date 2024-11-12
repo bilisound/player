@@ -26,20 +26,15 @@ export function setDefaultHeaders(defaultHeaders: Record<string, string>) {
   Config.instance.defaultHeaders = defaultHeaders;
 }
 
-/**
- * 激活服务
- * @param factory
- */
-export function registerPlaybackService(factory: () => () => Promise<void>) {
-  if (Platform.OS === "android") {
-    AppRegistry.registerHeadlessTask("BilisoundPlayer", factory);
-    return;
-  }
-  if (Platform.OS === "web") {
-    factory()();
-    return;
-  }
-  setImmediate(factory());
+export async function registerTaskAsync(
+  taskName: string,
+  options: any = {},
+): Promise<void> {
+  await BilisoundPlayerModule.registerTaskAsync(taskName, options);
+}
+
+export async function unregisterTaskAsync(taskName: string): Promise<void> {
+  await BilisoundPlayerModule.unregisterTaskAsync(taskName);
 }
 
 /**

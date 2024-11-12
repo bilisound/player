@@ -42,6 +42,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.util.concurrent.Executor
 
+
 const val TAG = "BilisoundPlayerModule"
 
 class BilisoundPlayerModule : Module() {
@@ -157,7 +158,7 @@ class BilisoundPlayerModule : Module() {
     }
 
     private val taskManager: TaskManagerInterface by lazy {
-        return@lazy appContext.legacyModule<TaskManagerInterface>()
+        return@lazy appContext.legacyModule()
             ?: throw TaskManagerNotFoundException()
     }
 
@@ -217,6 +218,14 @@ class BilisoundPlayerModule : Module() {
                 getController().removeListener(playerListener)
                 getDownloadManager(context.applicationContext).removeListener(downloadListener)
             }*/
+        }
+
+        AsyncFunction("registerTaskAsync") { taskName: String, options: Map<String, Any?> ->
+            taskManager.registerTask(taskName, BackgroundTaskConsumer::class.java, options)
+        }
+
+        AsyncFunction("unregisterTaskAsync") { taskName: String ->
+            taskManager.unregisterTask(taskName, BackgroundTaskConsumer::class.java)
         }
 
         AsyncFunction("play") { promise: Promise ->

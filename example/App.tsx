@@ -1,14 +1,7 @@
-import { setDefaultHeaders } from "bilisound-player";
-import { addListener } from "bilisound-player/events";
+import { registerTaskAsync, setDefaultHeaders } from "bilisound-player";
+import * as TaskManager from "expo-task-manager";
 import { useState } from "react";
-import {
-  AppState,
-  Button,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Button, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { Control } from "~/components/Control";
 import { Downloads } from "~/components/Downloads";
@@ -23,7 +16,18 @@ setDefaultHeaders({
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
 });
 
-let loaded = false;
+TaskManager.defineTask("background_task", ({ data, error }) => {
+  console.log(data, error);
+});
+
+TaskManager.defineTask("background_task2", ({ data, error }) => {
+  console.log(data, error);
+});
+
+registerTaskAsync("background_task");
+registerTaskAsync("background_task2");
+
+/*let loaded = false;
 AppState.addEventListener("change", (e) => {
   console.log(`状态变化：${e}`);
   if (e === "active" && !loaded) {
@@ -37,7 +41,7 @@ AppState.addEventListener("change", (e) => {
       console.log("onTrackChange", e);
     });
   }
-});
+});*/
 
 export default function App() {
   const [page, setPage] = useState<Pages>("control");
