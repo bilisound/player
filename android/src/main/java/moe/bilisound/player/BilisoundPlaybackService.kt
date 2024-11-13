@@ -179,8 +179,9 @@ class BilisoundPlaybackService : MediaSessionService() {
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
-        // 当应用被从最近任务列表移除时调用
-        // 目前还不能移除已经失活的媒体通知，详见 https://github.com/androidx/media/issues/1557
+        // 当应用被从「最近任务」中移除时调用
+        // 目前还不能移除用户打开 app 后加载播放列表，不开始播放并直接在「最近任务」中划掉应用，
+        // 最终导致失活的媒体通知，详见 https://github.com/androidx/media/issues/1557
         mediaSession?.run {
             if (!player.isPlaying) {
                 mediaSession!!.release()
