@@ -46,7 +46,7 @@ dependencies {
   implementation "androidx.media3:media3-exoplayer-dash:1.4.1"
   implementation "androidx.media3:media3-ui:1.4.1"
   implementation 'androidx.media3:media3-session:1.4.1'
-
-  // 添加 Kotlin Serialization 依赖
-  implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3" // 使用最新版本
+  implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3"
+  implementation "com.facebook.react:react-android:0.74.5"
+  implementation "androidx.work:work-runtime:2.9.1"
 }

@@ -1,9 +1,12 @@
 @file:OptIn(UnstableApi::class) package moe.bilisound.player
 
-import android.os.Handler
-import android.os.Looper
+import android.content.Intent
+import android.os.Build
+import android.os.Bundle
 import android.util.Log
 import androidx.annotation.OptIn
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.exoplayer.ExoPlayer
@@ -12,7 +15,6 @@ import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
-import java.util.concurrent.Executor
 
 class BilisoundPlaybackService : MediaSessionService() {
     private var mediaSession: MediaSession? = null
@@ -41,11 +43,13 @@ class BilisoundPlaybackService : MediaSessionService() {
         mediaSession = MediaSession.Builder(this, player).setId("moe.bilisound.player").setCallback(PlaybackCallback()).build()
         player.clearMediaItems()
         player.prepare()
+        player.addListener(playerListener)
     }
 
     // Remember to release the player and media session in onDestroy
     override fun onDestroy() {
         mediaSession?.run {
+            player.removeListener(playerListener)
             player.release()
             release()
             mediaSession = null
@@ -57,12 +61,23 @@ class BilisoundPlaybackService : MediaSessionService() {
     override fun onGetSession(
         controllerInfo: MediaSession.ControllerInfo
     ): MediaSession? = mediaSession
-}
 
-private class MainThreadExecutor : Executor {
-    private val handler = Handler(Looper.getMainLooper())
-    override fun execute(command: Runnable) {
-        handler.post(command)
+    fun emitJSEvent() {
+        val service = Intent(applicationContext, BilisoundTaskService::class.java)
+        val bundle = Bundle()
+        bundle.putString("foo", "bar")
+        service.putExtras(bundle)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            applicationContext.startForegroundService(service)
+        } else {
+            applicationContext.startService(service)
+        }
+    }
+
+    private val playerListener = object : Player.Listener {
+        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            emitJSEvent()
+        }
     }
 }
 

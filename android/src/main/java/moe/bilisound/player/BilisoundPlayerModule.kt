@@ -220,14 +220,6 @@ class BilisoundPlayerModule : Module() {
             }*/
         }
 
-        AsyncFunction("registerTaskAsync") { taskName: String, options: Map<String, Any?> ->
-            taskManager.registerTask(taskName, BackgroundTaskConsumer::class.java, options)
-        }
-
-        AsyncFunction("unregisterTaskAsync") { taskName: String ->
-            taskManager.unregisterTask(taskName, BackgroundTaskConsumer::class.java)
-        }
-
         AsyncFunction("play") { promise: Promise ->
             mainHandler.post {
                 try {

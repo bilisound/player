@@ -1,7 +1,14 @@
 import { registerTaskAsync, setDefaultHeaders } from "bilisound-player";
 import * as TaskManager from "expo-task-manager";
 import { useState } from "react";
-import { Button, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  AppRegistry,
+  Button,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
 import { Control } from "~/components/Control";
 import { Downloads } from "~/components/Downloads";
@@ -16,6 +23,13 @@ setDefaultHeaders({
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
 });
 
+AppRegistry.registerHeadlessTask("BilisoundPlayerTask", () => {
+  return async (data: any) => {
+    console.log("项目被运行！", data);
+  };
+});
+
+/*
 TaskManager.defineTask("background_task", ({ data, error }) => {
   console.log(data, error);
 });
@@ -26,6 +40,7 @@ TaskManager.defineTask("background_task2", ({ data, error }) => {
 
 registerTaskAsync("background_task");
 registerTaskAsync("background_task2");
+*/
 
 /*let loaded = false;
 AppState.addEventListener("change", (e) => {
