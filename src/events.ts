@@ -4,7 +4,6 @@ import { AppRegistry } from "react-native";
 import { bilisoundPlayerEmitter } from "./BilisoundPlayerModule";
 import {
   BackgroundEventListener,
-  BackgroundEventParam,
   BackgroundEventParamUnconfirmed,
   EventList,
 } from "./types";
@@ -19,10 +18,12 @@ export function addListener<T extends keyof EventList>(
   return bilisoundPlayerEmitter.addListener(name, listener);
 }
 
+const BACKGROUND_EVENT_TASK_NAME = "BilisoundPlayerTask";
+
 export function registerBackgroundEventListener(
   handler: BackgroundEventListener,
 ) {
-  AppRegistry.registerHeadlessTask("BilisoundPlayerTask", () => {
+  AppRegistry.registerHeadlessTask(BACKGROUND_EVENT_TASK_NAME, () => {
     return async (data: any) => {
       const handling: BackgroundEventParamUnconfirmed = data;
       switch (handling.event) {
