@@ -24,7 +24,7 @@ class BilisoundDownloadService
     companion object {
         const val JOB_ID = 1
         const val FOREGROUND_NOTIFICATION_ID = 1
-        const val DOWNLOAD_NOTIFICATION_CHANNEL_ID = "notification_channel"
+        const val DOWNLOAD_NOTIFICATION_CHANNEL_ID = "BilisoundDownloadServiceChannel"
     }
 
     override fun onCreate() {

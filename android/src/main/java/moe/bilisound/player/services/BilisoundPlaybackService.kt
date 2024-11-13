@@ -22,7 +22,6 @@ import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import kotlinx.serialization.json.Json
 import moe.bilisound.player.BilisoundPlayerModule
-import moe.bilisound.player.BilisoundTaskService
 import moe.bilisound.player.ERROR_BAD_HTTP_STATUS_CODE
 import moe.bilisound.player.ERROR_GENERIC
 import moe.bilisound.player.ERROR_NETWORK_FAILURE

@@ -28,7 +28,7 @@
 
         <!-- 后台播放事件处理服务（短时间运行，调用 React Native 端的 JS） -->
         <service
-            android:name=".BilisoundTaskService"
+            android:name=".services.BilisoundTaskService"
             android:foregroundServiceType="shortService" />
     </application>
 </manifest>

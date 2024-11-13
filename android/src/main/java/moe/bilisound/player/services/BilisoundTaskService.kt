@@ -1,4 +1,4 @@
-package moe.bilisound.player
+package moe.bilisound.player.services
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -10,9 +10,12 @@ import androidx.core.app.NotificationCompat
 import com.facebook.react.HeadlessJsTaskService
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.jstasks.HeadlessJsTaskConfig
+import moe.bilisound.player.R
 
 class BilisoundTaskService: HeadlessJsTaskService() {
-    private val CHANNEL_ID = "ShortServiceChannel"
+    companion object {
+        private const val CHANNEL_ID = "BilisoundTaskServiceChannel"
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -40,7 +43,7 @@ class BilisoundTaskService: HeadlessJsTaskService() {
             .build()
 
         // 创建只会执行数秒的短服务，以便库用户进行关于音乐播放事件的操作
-        startForeground(1, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SHORT_SERVICE)
+        startForeground(2, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SHORT_SERVICE)
 
         return super.onStartCommand(intent, flags, startId)
     }
