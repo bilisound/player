@@ -131,3 +131,19 @@ export interface EventList {
   onIsPlayingChange: IsPlayingChangeEvent;
   onDownloadUpdate: DownloadUpdateEvent;
 }
+
+export type BackgroundEventParam = {
+  [K in keyof EventList]: {
+    event: K;
+    data: EventList[K];
+  };
+}[keyof EventList];
+
+export type BackgroundEventParamUnconfirmed = {
+  event: keyof EventList | string;
+  data: any;
+};
+
+export type BackgroundEventListener = (
+  param: BackgroundEventParam,
+) => Promise<void> | void;

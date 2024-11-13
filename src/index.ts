@@ -1,5 +1,3 @@
-import { AppRegistry, Platform } from "react-native";
-
 import { BilisoundPlayerModule } from "./BilisoundPlayerModule";
 import {
   DownloadData,
@@ -24,17 +22,6 @@ export class Config {
  */
 export function setDefaultHeaders(defaultHeaders: Record<string, string>) {
   Config.instance.defaultHeaders = defaultHeaders;
-}
-
-export async function registerTaskAsync(
-  taskName: string,
-  options: any = {},
-): Promise<void> {
-  await BilisoundPlayerModule.registerTaskAsync(taskName, options);
-}
-
-export async function unregisterTaskAsync(taskName: string): Promise<void> {
-  await BilisoundPlayerModule.unregisterTaskAsync(taskName);
 }
 
 /**
