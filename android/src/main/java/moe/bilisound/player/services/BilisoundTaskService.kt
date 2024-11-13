@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.facebook.react.HeadlessJsTaskService
 import com.facebook.react.bridge.Arguments
@@ -14,6 +15,7 @@ import moe.bilisound.player.R
 
 class BilisoundTaskService: HeadlessJsTaskService() {
     companion object {
+        private const val TAG = "BilisoundTaskService"
         private const val CHANNEL_ID = "BilisoundTaskServiceChannel"
     }
 
@@ -43,9 +45,27 @@ class BilisoundTaskService: HeadlessJsTaskService() {
             .build()
 
         // 创建只会执行数秒的短服务，以便库用户进行关于音乐播放事件的操作
-        startForeground(2, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SHORT_SERVICE)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            startForeground(2, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SHORT_SERVICE)
+        } else {
+            startForeground(2, notification)
+        }
 
         return super.onStartCommand(intent, flags, startId)
+    }
+
+    override fun onHeadlessJsTaskStart(taskId: Int) {
+        Log.i(TAG, "onHeadlessJsTaskStart: 后台任务开始！")
+        return super.onHeadlessJsTaskStart(taskId)
+    }
+
+    override fun onHeadlessJsTaskFinish(taskId: Int) {
+        Log.i(TAG, "onHeadlessJsTaskFinish: 后台任务结束！")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            stopForeground(STOP_FOREGROUND_REMOVE)
+        }
+
+        return super.onHeadlessJsTaskFinish(taskId)
     }
 
     override fun getTaskConfig(intent: Intent): HeadlessJsTaskConfig? {
