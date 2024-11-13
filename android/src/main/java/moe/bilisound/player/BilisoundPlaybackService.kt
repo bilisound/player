@@ -58,9 +58,12 @@ class BilisoundPlaybackService : MediaSessionService() {
     // Remember to release the player and media session in onDestroy
     override fun onDestroy() {
         mediaSession?.run {
+            player.stop()
+            player.clearMediaItems()
             player.removeListener(playerListener)
             player.release()
             release()
+            mediaSession!!.release()
             mediaSession = null
         }
         super.onDestroy()
@@ -173,6 +176,19 @@ class BilisoundPlaybackService : MediaSessionService() {
                 )
             ))
         }
+    }
+
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        // 当应用被从最近任务列表移除时调用
+        // 目前还不能移除已经失活的媒体通知，详见 https://github.com/androidx/media/issues/1557
+        mediaSession?.run {
+            if (!player.isPlaying) {
+                mediaSession!!.release()
+                mediaSession = null
+                stopSelf()
+            }
+        }
+        super.onTaskRemoved(rootIntent)
     }
 }
 
