@@ -31,7 +31,6 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
-import expo.modules.interfaces.taskManager.TaskManagerInterface
 import expo.modules.kotlin.Promise
 import expo.modules.kotlin.exception.Exceptions
 import expo.modules.kotlin.modules.Module
@@ -155,11 +154,6 @@ class BilisoundPlayerModule : Module() {
     private fun getController(): MediaController {
         val controller = controllerFuture?.get() ?: throw Exception("Controller not ready")
         return controller
-    }
-
-    private val taskManager: TaskManagerInterface by lazy {
-        return@lazy appContext.legacyModule()
-            ?: throw TaskManagerNotFoundException()
     }
 
     @OptIn(UnstableApi::class)
