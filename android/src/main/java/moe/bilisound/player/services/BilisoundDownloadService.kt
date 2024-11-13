@@ -1,4 +1,4 @@
-@file:OptIn(UnstableApi::class) package moe.bilisound.player
+@file:OptIn(UnstableApi::class) package moe.bilisound.player.services
 
 import android.annotation.SuppressLint
 import android.app.Notification
@@ -10,6 +10,8 @@ import androidx.media3.exoplayer.offline.DownloadManager
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.media3.exoplayer.scheduler.PlatformScheduler
 import androidx.media3.exoplayer.scheduler.Scheduler
+import moe.bilisound.player.BilisoundPlayerModule
+import moe.bilisound.player.R
 
 class BilisoundDownloadService
     () : DownloadService(
@@ -26,12 +28,12 @@ class BilisoundDownloadService
     }
 
     override fun onCreate() {
-        Log.d(TAG, "创建服务")
+        Log.d(moe.bilisound.player.TAG, "创建服务")
         super.onCreate()
     }
 
     override fun getDownloadManager(): DownloadManager {
-        Log.d(TAG, "下载管理器在下载服务初始化！")
+        Log.d(moe.bilisound.player.TAG, "下载管理器在下载服务初始化！")
         return BilisoundPlayerModule.getDownloadManager(applicationContext)
     }
 

@@ -1,4 +1,6 @@
-@file:OptIn(UnstableApi::class) package moe.bilisound.player
+@file:OptIn(UnstableApi::class)
+
+package moe.bilisound.player.services
 
 import android.content.Intent
 import android.os.Build
@@ -19,7 +21,21 @@ import androidx.media3.session.MediaSessionService
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import kotlinx.serialization.json.Json
-import moe.bilisound.player.BilisoundPlayerModule.Companion.setHeadersOnBank
+import moe.bilisound.player.BilisoundPlayerModule
+import moe.bilisound.player.BilisoundTaskService
+import moe.bilisound.player.ERROR_BAD_HTTP_STATUS_CODE
+import moe.bilisound.player.ERROR_GENERIC
+import moe.bilisound.player.ERROR_NETWORK_FAILURE
+import moe.bilisound.player.EVENT_IS_PLAYING_CHANGE
+import moe.bilisound.player.EVENT_PLAYBACK_ERROR
+import moe.bilisound.player.EVENT_PLAYBACK_STATE_CHANGE
+import moe.bilisound.player.EVENT_TRACK_CHANGE
+import moe.bilisound.player.STATE_BUFFERING
+import moe.bilisound.player.STATE_ENDED
+import moe.bilisound.player.STATE_IDLE
+import moe.bilisound.player.STATE_READY
+import moe.bilisound.player.TAG
+import moe.bilisound.player.mediaItemToBundle
 
 class BilisoundPlaybackService : MediaSessionService() {
     companion object {
@@ -49,7 +65,8 @@ class BilisoundPlaybackService : MediaSessionService() {
             .setMediaSourceFactory(mediaSourceFactory)
             .build()
 
-        mediaSession = MediaSession.Builder(this, player).setId("moe.bilisound.player").setCallback(PlaybackCallback()).build()
+        mediaSession = MediaSession.Builder(this, player)
+            .setId("moe.bilisound.player").setCallback(PlaybackCallback()).build()
         player.clearMediaItems()
         player.prepare()
         player.addListener(playerListener)
@@ -95,33 +112,39 @@ class BilisoundPlaybackService : MediaSessionService() {
                 if (httpError is HttpDataSource.InvalidResponseCodeException) {
                     // Cast to InvalidResponseCodeException and retrieve the response code, message
                     // and headers.
-                    emitJSEvent(bundleOf(
-                        "event" to EVENT_PLAYBACK_ERROR,
-                        "data" to bundleOf(
-                            "type" to ERROR_BAD_HTTP_STATUS_CODE,
-                            "message" to httpError.message,
-                            "code" to httpError.responseCode
+                    emitJSEvent(
+                        bundleOf(
+                            "event" to EVENT_PLAYBACK_ERROR,
+                            "data" to bundleOf(
+                                "type" to ERROR_BAD_HTTP_STATUS_CODE,
+                                "message" to httpError.message,
+                                "code" to httpError.responseCode
+                            )
                         )
-                    ))
+                    )
                 } else {
                     // Try calling httpError.getCause() to retrieve the underlying cause, although
                     // note that it may be null.
-                    emitJSEvent(bundleOf(
-                        "event" to EVENT_PLAYBACK_ERROR,
-                        "data" to bundleOf(
-                            "type" to ERROR_NETWORK_FAILURE,
-                            "message" to httpError.message,
+                    emitJSEvent(
+                        bundleOf(
+                            "event" to EVENT_PLAYBACK_ERROR,
+                            "data" to bundleOf(
+                                "type" to ERROR_NETWORK_FAILURE,
+                                "message" to httpError.message,
+                            )
                         )
-                    ))
+                    )
                 }
             } else {
-                emitJSEvent(bundleOf(
-                    "event" to EVENT_PLAYBACK_ERROR,
-                    "data" to bundleOf(
-                        "type" to ERROR_GENERIC,
-                        "message" to cause?.message,
+                emitJSEvent(
+                    bundleOf(
+                        "event" to EVENT_PLAYBACK_ERROR,
+                        "data" to bundleOf(
+                            "type" to ERROR_GENERIC,
+                            "message" to cause?.message,
+                        )
                     )
-                ))
+                )
             }
         }
 
@@ -140,41 +163,52 @@ class BilisoundPlaybackService : MediaSessionService() {
                 type = STATE_ENDED
             }
 
-            emitJSEvent(bundleOf(
-                "event" to EVENT_PLAYBACK_STATE_CHANGE,
-                "data" to bundleOf(
-                    "type" to type
+            emitJSEvent(
+                bundleOf(
+                    "event" to EVENT_PLAYBACK_STATE_CHANGE,
+                    "data" to bundleOf(
+                        "type" to type
+                    )
                 )
-            ))
+            )
         }
 
         override fun onIsPlayingChanged(isPlaying: Boolean) {
-            emitJSEvent(bundleOf(
-                "event" to EVENT_IS_PLAYING_CHANGE,
-                "data" to bundleOf(
-                    "isPlaying" to isPlaying
+            emitJSEvent(
+                bundleOf(
+                    "event" to EVENT_IS_PLAYING_CHANGE,
+                    "data" to bundleOf(
+                        "isPlaying" to isPlaying
+                    )
                 )
-            ))
+            )
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             if (mediaItem == null) {
-                emitJSEvent(bundleOf(
-                    "event" to EVENT_TRACK_CHANGE,
-                    "data" to bundleOf(
-                        "track" to null
+                emitJSEvent(
+                    bundleOf(
+                        "event" to EVENT_TRACK_CHANGE,
+                        "data" to bundleOf(
+                            "track" to null
+                        )
                     )
-                ))
+                )
                 return
             }
             Log.d(TAG, "onMediaItemTransition: 正在运行 setHeadersOnBank: ${mediaItem.mediaId}")
-            setHeadersOnBank(mediaItem.mediaId, Json.decodeFromString(mediaItem.mediaMetadata.extras?.getString("headers") ?: "{}"))
-            emitJSEvent(bundleOf(
-                "event" to EVENT_TRACK_CHANGE,
-                "data" to bundleOf(
-                    "track" to mediaItemToBundle(mediaItem)
+            BilisoundPlayerModule.setHeadersOnBank(
+                mediaItem.mediaId,
+                Json.decodeFromString(mediaItem.mediaMetadata.extras?.getString("headers") ?: "{}")
+            )
+            emitJSEvent(
+                bundleOf(
+                    "event" to EVENT_TRACK_CHANGE,
+                    "data" to bundleOf(
+                        "track" to mediaItemToBundle(mediaItem)
+                    )
                 )
-            ))
+            )
         }
     }
 

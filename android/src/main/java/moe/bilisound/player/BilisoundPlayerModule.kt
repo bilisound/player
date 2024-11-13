@@ -37,6 +37,8 @@ import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import expo.modules.kotlin.types.Enumerable
 import kotlinx.serialization.json.Json
+import moe.bilisound.player.services.BilisoundDownloadService
+import moe.bilisound.player.services.BilisoundPlaybackService
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.concurrent.Executor
