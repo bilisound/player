@@ -73,7 +73,7 @@ class BilisoundTaskService: HeadlessJsTaskService() {
             HeadlessJsTaskConfig(
                 "BilisoundPlayerTask",
                 Arguments.fromBundle(it),
-                5000, // timeout for the task
+                10000, // timeout for the task
                 true // optional: defines whether or not the task is allowed in foreground.
                 // Default is false
             )
