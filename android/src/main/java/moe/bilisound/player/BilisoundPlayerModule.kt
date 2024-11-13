@@ -206,12 +206,11 @@ class BilisoundPlayerModule : Module() {
         }
 
         OnStopObserving {
-            // 因为播放器事件在库内部还有用，所以实际上不能当 RN 端没有监听事件时就移除监听器
-            /*Log.d(TAG, "definition: 执行监听器停止操作！")
+            Log.d(TAG, "definition: 执行监听器停止操作！")
             mainHandler.post {
                 getController().removeListener(playerListener)
                 getDownloadManager(context.applicationContext).removeListener(downloadListener)
-            }*/
+            }
         }
 
         AsyncFunction("play") { promise: Promise ->
@@ -797,8 +796,6 @@ class BilisoundPlayerModule : Module() {
                 ))
                 return
             }
-            Log.d(TAG, "onMediaItemTransition: 正在运行 setHeadersOnBank: ${mediaItem.mediaId}")
-            setHeadersOnBank(mediaItem.mediaId, Json.decodeFromString(mediaItem.mediaMetadata.extras?.getString("headers") ?: "{}"))
             this@BilisoundPlayerModule.sendEvent(EVENT_TRACK_CHANGE, bundleOf(
                 "track" to mediaItemToBundle(mediaItem)
             ))

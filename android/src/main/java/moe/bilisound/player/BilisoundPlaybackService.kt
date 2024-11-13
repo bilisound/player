@@ -7,8 +7,10 @@ import android.util.Log
 import androidx.annotation.OptIn
 import androidx.core.os.bundleOf
 import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.HttpDataSource
 import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
@@ -16,8 +18,14 @@ import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import kotlinx.serialization.json.Json
+import moe.bilisound.player.BilisoundPlayerModule.Companion.setHeadersOnBank
 
 class BilisoundPlaybackService : MediaSessionService() {
+    companion object {
+        private const val TAG = "BilisoundPlaybackService"
+    }
+
     private var mediaSession: MediaSession? = null
 
     // Create your Player and MediaSession in the onCreate lifecycle event
@@ -74,13 +82,95 @@ class BilisoundPlaybackService : MediaSessionService() {
     }
 
     private val playerListener = object : Player.Listener {
-        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-            emitJSEvent(bundleOf(
-                "mediaItem" to if (mediaItem == null) {
-                    null
+        override fun onPlayerError(error: PlaybackException) {
+            val cause = error.cause
+            if (cause is HttpDataSource.HttpDataSourceException) {
+                // An HTTP error occurred.
+                val httpError = cause
+                // It's possible to find out more about the error both by casting and by querying
+                // the cause.
+                if (httpError is HttpDataSource.InvalidResponseCodeException) {
+                    // Cast to InvalidResponseCodeException and retrieve the response code, message
+                    // and headers.
+                    emitJSEvent(bundleOf(
+                        "event" to EVENT_PLAYBACK_ERROR,
+                        "data" to bundleOf(
+                            "type" to ERROR_BAD_HTTP_STATUS_CODE,
+                            "message" to httpError.message,
+                            "code" to httpError.responseCode
+                        )
+                    ))
                 } else {
-                    mediaItemToBundle(mediaItem)
+                    // Try calling httpError.getCause() to retrieve the underlying cause, although
+                    // note that it may be null.
+                    emitJSEvent(bundleOf(
+                        "event" to EVENT_PLAYBACK_ERROR,
+                        "data" to bundleOf(
+                            "type" to ERROR_NETWORK_FAILURE,
+                            "message" to httpError.message,
+                        )
+                    ))
                 }
+            } else {
+                emitJSEvent(bundleOf(
+                    "event" to EVENT_PLAYBACK_ERROR,
+                    "data" to bundleOf(
+                        "type" to ERROR_GENERIC,
+                        "message" to cause?.message,
+                    )
+                ))
+            }
+        }
+
+        override fun onPlaybackStateChanged(playbackState: Int) {
+            var type = STATE_IDLE
+            if (playbackState == Player.STATE_IDLE) {
+                type = STATE_IDLE
+            }
+            if (playbackState == Player.STATE_BUFFERING) {
+                type = STATE_BUFFERING
+            }
+            if (playbackState == Player.STATE_READY) {
+                type = STATE_READY
+            }
+            if (playbackState == Player.STATE_ENDED) {
+                type = STATE_ENDED
+            }
+
+            emitJSEvent(bundleOf(
+                "event" to EVENT_PLAYBACK_STATE_CHANGE,
+                "data" to bundleOf(
+                    "type" to type
+                )
+            ))
+        }
+
+        override fun onIsPlayingChanged(isPlaying: Boolean) {
+            emitJSEvent(bundleOf(
+                "event" to EVENT_IS_PLAYING_CHANGE,
+                "data" to bundleOf(
+                    "isPlaying" to isPlaying
+                )
+            ))
+        }
+
+        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            if (mediaItem == null) {
+                emitJSEvent(bundleOf(
+                    "event" to EVENT_TRACK_CHANGE,
+                    "data" to bundleOf(
+                        "track" to null
+                    )
+                ))
+                return
+            }
+            Log.d(TAG, "onMediaItemTransition: 正在运行 setHeadersOnBank: ${mediaItem.mediaId}")
+            setHeadersOnBank(mediaItem.mediaId, Json.decodeFromString(mediaItem.mediaMetadata.extras?.getString("headers") ?: "{}"))
+            emitJSEvent(bundleOf(
+                "event" to EVENT_TRACK_CHANGE,
+                "data" to bundleOf(
+                    "track" to mediaItemToBundle(mediaItem)
+                )
             ))
         }
     }
