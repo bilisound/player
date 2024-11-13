@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.facebook.react.HeadlessJsTaskService
 import com.facebook.react.bridge.Arguments
@@ -32,7 +31,6 @@ class BilisoundTaskService: HeadlessJsTaskService() {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         // 创建通知
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
@@ -41,6 +39,7 @@ class BilisoundTaskService: HeadlessJsTaskService() {
             .setSmallIcon(R.drawable.ic_download)
             .build()
 
+        // 创建只会执行数秒的短服务，以便库用户进行关于音乐播放事件的操作
         startForeground(1, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SHORT_SERVICE)
 
         return super.onStartCommand(intent, flags, startId)

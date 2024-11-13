@@ -5,6 +5,7 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.annotation.OptIn
+import androidx.core.os.bundleOf
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
@@ -62,10 +63,8 @@ class BilisoundPlaybackService : MediaSessionService() {
         controllerInfo: MediaSession.ControllerInfo
     ): MediaSession? = mediaSession
 
-    fun emitJSEvent() {
+    fun emitJSEvent(bundle: Bundle) {
         val service = Intent(applicationContext, BilisoundTaskService::class.java)
-        val bundle = Bundle()
-        bundle.putString("foo", "bar")
         service.putExtras(bundle)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             applicationContext.startForegroundService(service)
@@ -76,7 +75,13 @@ class BilisoundPlaybackService : MediaSessionService() {
 
     private val playerListener = object : Player.Listener {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-            emitJSEvent()
+            emitJSEvent(bundleOf(
+                "mediaItem" to if (mediaItem == null) {
+                    null
+                } else {
+                    mediaItemToBundle(mediaItem)
+                }
+            ))
         }
     }
 }
