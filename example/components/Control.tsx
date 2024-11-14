@@ -156,7 +156,7 @@ export function Control() {
           onPress={() => BilisoundPlayer.setSpeed(0.9, false)}
           title="0.9"
         />
-        <Button onPress={() => BilisoundPlayer.setSpeed(1)} title="1" />
+        <Button onPress={() => BilisoundPlayer.setSpeed(1.0)} title="1.0" />
         <Button
           onPress={() => BilisoundPlayer.setSpeed(1.1, false)}
           title="1.1"
@@ -164,6 +164,10 @@ export function Control() {
         <Button
           onPress={() => BilisoundPlayer.setSpeed(1.2, false)}
           title="1.2"
+        />
+        <Button
+          onPress={() => BilisoundPlayer.setSpeed(2.0, false)}
+          title="2.0"
         />
       </View>
       <Button
