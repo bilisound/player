@@ -20,6 +20,13 @@ import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import moe.bilisound.player.BilisoundPlayerModule
 import moe.bilisound.player.ERROR_BAD_HTTP_STATUS_CODE
@@ -28,6 +35,7 @@ import moe.bilisound.player.ERROR_NETWORK_FAILURE
 import moe.bilisound.player.EVENT_IS_PLAYING_CHANGE
 import moe.bilisound.player.EVENT_PLAYBACK_ERROR
 import moe.bilisound.player.EVENT_PLAYBACK_STATE_CHANGE
+import moe.bilisound.player.EVENT_PLAYING_PROGRESS_CHANGE
 import moe.bilisound.player.EVENT_TRACK_CHANGE
 import moe.bilisound.player.STATE_BUFFERING
 import moe.bilisound.player.STATE_ENDED
@@ -42,6 +50,8 @@ class BilisoundPlaybackService : MediaSessionService() {
     }
 
     private var mediaSession: MediaSession? = null
+    private var progressUpdateJob: Job? = null
+    private val coroutineScope = CoroutineScope(Dispatchers.Main + Job())
 
     // Create your Player and MediaSession in the onCreate lifecycle event
     @OptIn(UnstableApi::class) override fun onCreate() {
@@ -69,10 +79,14 @@ class BilisoundPlaybackService : MediaSessionService() {
         player.clearMediaItems()
         player.prepare()
         player.addListener(playerListener)
+
+        startProgressUpdates()
     }
 
     // Remember to release the player and media session in onDestroy
     override fun onDestroy() {
+        progressUpdateJob?.cancel()
+        coroutineScope.cancel()
         mediaSession?.run {
             player.stop()
             player.clearMediaItems()
@@ -223,6 +237,27 @@ class BilisoundPlaybackService : MediaSessionService() {
             }
         }
         super.onTaskRemoved(rootIntent)
+    }
+
+    private fun startProgressUpdates() {
+        progressUpdateJob?.cancel()
+        progressUpdateJob = coroutineScope.launch {
+            while (isActive) {
+                if (mediaSession?.player?.isPlaying == true) {
+                    emitJSEvent(
+                        bundleOf(
+                            "event" to EVENT_PLAYING_PROGRESS_CHANGE,
+                            "data" to bundleOf(
+                                "duration" to (mediaSession?.player?.duration?.div(1000) ?: 0),
+                                "position" to (mediaSession?.player?.currentPosition?.div(1000) ?: 0),
+                                "buffered" to (mediaSession?.player?.bufferedPosition?.div(1000) ?: 0)
+                            )
+                        )
+                    )
+                }
+                delay(10000) // 延迟 10 秒
+            }
+        }
     }
 }
 

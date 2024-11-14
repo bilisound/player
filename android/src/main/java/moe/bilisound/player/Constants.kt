@@ -32,6 +32,11 @@ const val EVENT_TRACK_CHANGE = "onTrackChange"
 const val EVENT_IS_PLAYING_CHANGE = "onIsPlayingChange"
 
 /**
+ * 播放进度变更
+ */
+const val EVENT_PLAYING_PROGRESS_CHANGE = "onPlayingProgressChange"
+
+/**
  * 下载状态更新
  */
 const val EVENT_DOWNLOAD_UPDATE = "onDownloadUpdate"
