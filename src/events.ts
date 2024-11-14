@@ -1,7 +1,7 @@
-import { Subscription } from "expo-modules-core";
+import { EventSubscription } from "expo-modules-core";
 import { AppRegistry } from "react-native";
 
-import { bilisoundPlayerEmitter } from "./BilisoundPlayerModule";
+import { BilisoundPlayerModule } from "./BilisoundPlayerModule";
 import {
   BackgroundEventListener,
   BackgroundEventParamUnconfirmed,
@@ -14,8 +14,8 @@ import {
 export function addListener<T extends keyof EventList>(
   name: T,
   listener: (event: EventList[T]) => void,
-): Subscription {
-  return bilisoundPlayerEmitter.addListener(name, listener);
+): EventSubscription {
+  return BilisoundPlayerModule.addListener(name, listener);
 }
 
 const BACKGROUND_EVENT_TASK_NAME = "BilisoundPlayerTask";

@@ -1,4 +1,4 @@
-import { Subscription } from "expo-modules-core";
+import { EventSubscription } from "expo-modules-core";
 import { useSyncExternalStore } from "react";
 
 import { addListener } from "./events";
@@ -67,7 +67,7 @@ export function createSubscriptionStore<T>({
 }: CreateSubscriptionStoreConfig<T>) {
   const progressListeners: Set<() => void> = new Set();
   let currentValue: T = initialValue;
-  let subscription: Subscription | undefined = undefined;
+  let EventSubscription: EventSubscription | undefined = undefined;
   let timer: ReturnType<typeof setTimeout> | null = null;
 
   const doFetch = async () => {
@@ -76,7 +76,7 @@ export function createSubscriptionStore<T>({
   };
 
   const startFetching = () => {
-    subscription = addListener(eventName, doFetch);
+    EventSubscription = addListener(eventName, doFetch);
     doFetch();
     if (typeof interval === "number" && timer === null) {
       timer = setInterval(doFetch, interval);
@@ -84,8 +84,8 @@ export function createSubscriptionStore<T>({
   };
 
   const stopFetching = () => {
-    subscription?.remove();
-    subscription = undefined;
+    EventSubscription?.remove();
+    EventSubscription = undefined;
     if (typeof timer === "number") {
       clearInterval(timer);
       timer = null;
@@ -94,7 +94,7 @@ export function createSubscriptionStore<T>({
 
   const subscribe = (listener: () => void) => {
     progressListeners.add(listener);
-    if (!subscription) {
+    if (!EventSubscription) {
       startFetching();
     }
     return () => {
