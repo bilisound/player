@@ -351,15 +351,14 @@ class BilisoundPlayerModule : Module() {
             mainHandler.post {
                 try {
                     val controller = getController()
-                    val progressInfo = JSONObject().apply {
+                    promise.resolve(bundleOf(
                         // 总时长（毫秒转秒）
-                        put("duration", controller.duration.coerceAtLeast(0) / 1000.0)
+                        "duration" to controller.duration.coerceAtLeast(0) / 1000.0,
                         // 当前播放进度（毫秒转秒）
-                        put("position", controller.currentPosition.coerceAtLeast(0) / 1000.0)
+                        "position" to controller.currentPosition.coerceAtLeast(0) / 1000.0,
                         // 已缓冲进度（毫秒转秒）
-                        put("buffered", controller.bufferedPosition.coerceAtLeast(0) / 1000.0)
-                    }
-                    promise.resolve(progressInfo.toString())
+                        "buffered" to controller.bufferedPosition.coerceAtLeast(0) / 1000.0
+                    ))
                 } catch (e: Exception) {
                     promise.reject("PLAYER_ERROR", "无法获取播放进度 (${e.message})", e)
                 }
@@ -403,10 +402,10 @@ class BilisoundPlayerModule : Module() {
                     Log.d(TAG, "用户尝试添加曲目到指定位置。接收内容：$jsonContent")
                     val mediaItem = createMediaItemFromTrack(jsonContent)
                     val controller = getController()
-                    
+
                     // 添加曲目到指定的 index
                     controller.addMediaItem(index, mediaItem)
-                    
+
                     promise.resolve()
                     firePlaylistChangeEvent()
                 } catch (e: Exception) {
@@ -421,14 +420,14 @@ class BilisoundPlayerModule : Module() {
                     Log.d(TAG, "用户尝试添加多首曲目")
                     val jsonArray = JSONArray(jsonContent)
                     val mediaItems = mutableListOf<MediaItem>()
-                    
+
                     for (i in 0 until jsonArray.length()) {
                         val trackJson = jsonArray.getString(i)
                         Log.d(TAG, "接收内容：$trackJson")
                         val mediaItem = createMediaItemFromTrack(trackJson)
                         mediaItems.add(mediaItem)
                     }
-                    
+
                     val controller = getController()
                     controller.addMediaItems(mediaItems)
                     promise.resolve()
@@ -445,14 +444,14 @@ class BilisoundPlayerModule : Module() {
                     Log.d(TAG, "用户尝试添加多首曲目到指定位置。接收内容：$jsonContent")
                     val jsonArray = JSONArray(jsonContent)
                     val mediaItems = mutableListOf<MediaItem>()
-                    
+
                     for (i in 0 until jsonArray.length()) {
                         val trackJson = jsonArray.getString(i)
                         Log.d(TAG, "接收内容：$trackJson")
                         val mediaItem = createMediaItemFromTrack(trackJson)
                         mediaItems.add(mediaItem)
                     }
-                    
+
                     val controller = getController()
                     controller.addMediaItems(index, mediaItems)
                     promise.resolve()
@@ -472,7 +471,7 @@ class BilisoundPlayerModule : Module() {
                     for (i in 0 until controller.mediaItemCount) {
                         val mediaItem = controller.getMediaItemAt(i)
                         val metadata = mediaItem.mediaMetadata
-                        
+
                         val trackInfo = JSONObject().apply {
                             put("id", mediaItem.mediaId)
                             put("uri", mediaItem.localConfiguration?.uri?.toString() ?: "")
@@ -483,7 +482,7 @@ class BilisoundPlayerModule : Module() {
                             put("headers", metadata.extras?.getString("headers"))
                             put("extendedData", metadata.extras?.getString("extendedData"))
                         }
-                        
+
                         tracks.put(trackInfo)
                     }
 
@@ -542,27 +541,27 @@ class BilisoundPlayerModule : Module() {
                     Log.d(TAG, "用户尝试删除多个曲目。接收内容: $jsonContent")
                     val controller = getController()
                     val jsonArray = JSONArray(jsonContent)
-                    
+
                     // 将索引转换为列表并排序（从大到小）
                     val indices = mutableListOf<Int>()
                     for (i in 0 until jsonArray.length()) {
                         indices.add(jsonArray.getInt(i))
                     }
-                    
+
                     // 验证所有索引是否有效
                     val invalidIndex = indices.find { it < 0 || it >= controller.mediaItemCount }
                     if (invalidIndex != null) {
                         throw IllegalArgumentException("无效的索引: $invalidIndex")
                     }
-                    
+
                     // 从大到小排序
                     indices.sortDescending()
-                    
+
                     // 从大到小依次删除，这样不会影响后面要删除项目的索引
                     for (index in indices) {
                         controller.removeMediaItem(index)
                     }
-                    
+
                     promise.resolve()
                     firePlaylistChangeEvent()
                 } catch (e: Exception) {
@@ -628,7 +627,7 @@ class BilisoundPlayerModule : Module() {
                         downloads.put(downloadToJSONObject(downloadIndex.download))
                     }
                     downloadIndex.close()
-                    
+
                     promise.resolve(downloads.toString())
                 } catch (e: Exception) {
                     promise.reject("DOWNLOADER_ERROR", "无法获取下载列表：${e.message}", e)

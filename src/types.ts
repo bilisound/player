@@ -130,6 +130,7 @@ export interface EventList {
   onTrackChange: TrackChangeEvent;
   onIsPlayingChange: IsPlayingChangeEvent;
   onDownloadUpdate: DownloadUpdateEvent;
+  [key: string]: any;
 }
 
 export type BackgroundEventParam = {

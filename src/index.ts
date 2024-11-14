@@ -79,7 +79,7 @@ export function jump(to: number): Promise<void> {
  * 获取播放进度
  */
 export async function getProgress(): Promise<PlaybackProgress> {
-  return JSON.parse(await BilisoundPlayerModule.getProgress());
+  return BilisoundPlayerModule.getProgress();
 }
 
 /**
