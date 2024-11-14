@@ -1,12 +1,9 @@
-import { EventEmitter } from "expo-modules-core";
-
 import {
   DownloadState,
-  EventList,
   PlaybackProgress,
   PlaybackState,
   TrackDataInternal,
-} from "../types";
+} from "./index";
 
 export interface BilisoundPlayerModuleInterface {
   // 播放器相关
