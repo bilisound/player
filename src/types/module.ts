@@ -8,7 +8,7 @@ import {
   TrackDataInternal,
 } from "../types";
 
-export declare class BilisoundPlayerModuleInterface extends EventEmitter<EventList> {
+export interface BilisoundPlayerModuleInterface {
   // 播放器相关
   play(): Promise<void>;
   pause(): Promise<void>;
