@@ -1,3 +1,5 @@
+import { Platform } from "react-native";
+
 import { BilisoundPlayerModule } from "./BilisoundPlayerModule";
 import {
   DownloadData,
@@ -120,6 +122,13 @@ export function setSpeed(speed: number, retainPitch = true): Promise<void> {
  * @param index 插入位置。不指定则插入到末尾
  */
 export function addTrack(trackData: TrackData, index?: number): Promise<void> {
+  if (Platform.OS === "web") {
+    if (typeof index === "number") {
+      return BilisoundPlayerModule.addTrackAt(trackData, index);
+    }
+    return BilisoundPlayerModule.addTrack(trackData);
+  }
+
   const builtTrackData = toTrackDataInternal(trackData);
   if (typeof index === "number") {
     return BilisoundPlayerModule.addTrackAt(
@@ -139,6 +148,13 @@ export function addTracks(
   trackDatas: TrackData[],
   index?: number,
 ): Promise<void> {
+  if (Platform.OS === "web") {
+    if (typeof index === "number") {
+      return BilisoundPlayerModule.addTracksAt(trackDatas, index);
+    }
+    return BilisoundPlayerModule.addTracks(trackDatas);
+  }
+
   const processedData: TrackDataInternal[] = [];
   for (let i = 0; i < trackDatas.length; i++) {
     const trackData = trackDatas[i];
@@ -158,11 +174,14 @@ export function addTracks(
  * @returns {Promise<TrackData[]>} 整个播放队列
  */
 export async function getTracks(): Promise<TrackData[]> {
-  const raw = await (BilisoundPlayerModule.getTracks() as Promise<string>);
-  const rawData: TrackDataInternal[] = JSON.parse(raw);
-  return rawData.map((e) => {
-    return toTrackData(e);
-  });
+  const raw = await BilisoundPlayerModule.getTracks();
+  if (typeof raw === "string") {
+    const rawData: TrackDataInternal[] = JSON.parse(raw);
+    return rawData.map((e) => {
+      return toTrackData(e);
+    });
+  }
+  return raw;
 }
 
 /**
@@ -174,6 +193,10 @@ export async function replaceTrack(
   index: number,
   trackData: TrackData,
 ): Promise<void> {
+  if (Platform.OS === "web") {
+    return BilisoundPlayerModule.replaceTrack(index, trackData);
+  }
+
   const builtTrackData = toTrackDataInternal(trackData);
   return BilisoundPlayerModule.replaceTrack(
     index,
@@ -186,6 +209,13 @@ export async function replaceTrack(
  * @param index
  */
 export async function deleteTracks(index: number | number[]): Promise<void> {
+  if (Platform.OS === "web") {
+    if (Array.isArray(index)) {
+      return BilisoundPlayerModule.deleteTracks(index);
+    }
+    return BilisoundPlayerModule.deleteTrack(index);
+  }
+
   if (Array.isArray(index)) {
     return BilisoundPlayerModule.deleteTracks(JSON.stringify(index));
   }
