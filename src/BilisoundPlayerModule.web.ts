@@ -13,6 +13,12 @@ class BilisoundPlayerModuleWeb
   extends NativeModule<EventList>
   implements BilisoundPlayerModuleInterface
 {
+  constructor() {
+    super();
+
+    console.log("BilisoundPlayerModuleWeb init!");
+  }
+
   play(): Promise<void> {
     throw new Error("Method not implemented.");
   }
@@ -99,4 +105,8 @@ class BilisoundPlayerModuleWeb
   }
 }
 
-export default registerWebModule(BilisoundPlayerModuleWeb);
+const result = registerWebModule(BilisoundPlayerModuleWeb);
+
+console.log("result: ", result);
+
+export default result;
