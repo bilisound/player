@@ -133,6 +133,16 @@ export interface EventList {
   [key: string]: any;
 }
 
+export interface EventListFunc {
+  onPlaybackStateChange: (params: PlaybackStateChangeEvent) => void;
+  onPlaybackError: (params: PlaybackErrorEvent) => void;
+  onQueueChange: (params: null) => void;
+  onTrackChange: (params: TrackChangeEvent) => void;
+  onIsPlayingChange: (params: IsPlayingChangeEvent) => void;
+  onDownloadUpdate: (params: DownloadUpdateEvent) => void;
+  [key: string]: any;
+}
+
 export type BackgroundEventParam = {
   [K in keyof EventList]: {
     event: K;

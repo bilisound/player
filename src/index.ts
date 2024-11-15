@@ -99,6 +99,9 @@ export async function getIsPlaying(): Promise<boolean> {
 }
 
 export async function getCurrentTrack() {
+  if (Platform.OS === "web") {
+    return BilisoundPlayerModule.getCurrentTrackWeb();
+  }
   const e: TrackDataInternal | null =
     await BilisoundPlayerModule.getCurrentTrack();
   if (!e) {

@@ -2,7 +2,7 @@ import { registerWebModule, NativeModule } from "expo";
 
 import {
   DownloadState,
-  EventList,
+  EventListFunc,
   PlaybackProgress,
   PlaybackState,
   TrackData,
@@ -11,14 +11,14 @@ import {
 import { BilisoundPlayerModuleInterface } from "./types/module";
 
 class BilisoundPlayerModuleWeb
-  extends NativeModule<EventList>
+  extends NativeModule<EventListFunc>
   implements BilisoundPlayerModuleInterface
 {
   private static isMediaSessionAvailable = !!window?.navigator?.mediaSession;
   /**
    * HTMLAudioElement 本体
    */
-  private audioElement?: HTMLAudioElement;
+  private audioElement: HTMLAudioElement;
   /**
    * 播放队列
    */
@@ -39,11 +39,50 @@ class BilisoundPlayerModuleWeb
     buffered: 0,
     position: 0,
   };
+  /**
+   * 播放速度设置
+   * @private
+   */
+  private playbackSpeedOption = {
+    speed: 1,
+    retainPitch: true,
+  };
+  private playbackState: PlaybackState = "STATE_IDLE";
 
   constructor() {
     super();
     const el = document.createElement("audio");
     el.dataset.managedByBilisound = this.id;
+    el.addEventListener("loadstart", () => {
+      this.playbackState = "STATE_BUFFERING";
+      this.emit("onPlaybackStateChange", {
+        type: "STATE_BUFFERING",
+      });
+    });
+    el.addEventListener("canplay", () => {
+      this.playbackState = "STATE_READY";
+      this.emit("onPlaybackStateChange", {
+        type: "STATE_READY",
+      });
+    });
+    el.addEventListener("ended", () => {
+      if (this.index >= this.trackData.length - 1) {
+        // 没有可以继续播放的内容了！
+        this.playbackState = "STATE_ENDED";
+        this.emit("onPlaybackStateChange", {
+          type: "STATE_ENDED",
+        });
+      } else {
+        // 播放下一首
+        this.nextTrack();
+      }
+    });
+    el.addEventListener("play", () => {
+      this.emit("onIsPlayingChange", { isPlaying: true });
+    });
+    el.addEventListener("pause", () => {
+      this.emit("onIsPlayingChange", { isPlaying: false });
+    });
     if (BilisoundPlayerModuleWeb.isMediaSessionAvailable) {
       navigator.mediaSession.setActionHandler("previoustrack", () =>
         this.prevTrack(),
@@ -58,102 +97,197 @@ class BilisoundPlayerModuleWeb
     this.audioElement = el;
   }
 
-  play(): Promise<void> {
-    throw new Error("Method not implemented.");
+  emitQueueChange() {
+    this.emit("onQueueChange", null);
   }
-  pause(): Promise<void> {
-    throw new Error("Method not implemented.");
+
+  async play() {
+    await this.audioElement.play();
   }
-  prev(): Promise<void> {
-    throw new Error("Method not implemented.");
+
+  async pause() {
+    this.audioElement.pause();
   }
-  next(): Promise<void> {
-    throw new Error("Method not implemented.");
+
+  async prev() {
+    const { audioElement } = this;
+    if (!audioElement) {
+      return;
+    }
+    // https://ux.stackexchange.com/questions/80335/why-does-previous-button-in-music-player-apps-start-the-current-track-from-the-b
+    if (!audioElement.paused && audioElement.currentTime > 3) {
+      audioElement.currentTime = 0;
+      return;
+    }
+    await this.jump(
+      this.index <= 0 ? this.trackData.length - 1 : this.index - 1,
+    );
   }
-  toggle(): Promise<void> {
-    throw new Error("Method not implemented.");
+
+  async next() {
+    await this.jump(
+      this.index >= this.trackData.length - 1 ? 0 : this.index + 1,
+    );
   }
-  seek(to: number): Promise<void> {
-    throw new Error("Method not implemented.");
+
+  async toggle() {
+    if (this.audioElement.paused) {
+      await this.play();
+    } else {
+      await this.pause();
+    }
   }
-  jump(to: number): Promise<void> {
-    throw new Error("Method not implemented.");
+
+  async seek(to: number) {
+    this.audioElement.currentTime = to;
   }
-  getProgress(): Promise<PlaybackProgress> {
-    throw new Error("Method not implemented.");
+
+  async jump(to: number) {
+    const { audioElement } = this;
+    if (!audioElement) {
+      return;
+    }
+    if (to < 0 || to >= this.trackData.length) {
+      throw new Error("非法的索引值");
+    }
+    this.index = to;
+    const prevPlayState = !audioElement.paused;
+    const obj = this.trackData[to];
+    audioElement.src = obj.uri;
+
+    if (prevPlayState) {
+      await this.play();
+    }
+
+    // this.updateMediaSession();
+    // this.emitStatusEvents();
+    // this.handleIndexUpdate();
   }
-  getPlaybackState(): Promise<PlaybackState> {
-    throw new Error("Method not implemented.");
+
+  async getProgress(): Promise<PlaybackProgress> {
+    const { audioElement } = this;
+    return {
+      // 当前播放时间
+      position: audioElement.currentTime || 0,
+      // 音频总长度
+      duration: audioElement.duration || 0,
+      // 已加载长度
+      buffered:
+        audioElement.buffered.length > 0
+          ? audioElement.buffered.end(audioElement.buffered.length - 1)
+          : 0,
+    };
   }
-  getIsPlaying(): Promise<boolean> {
-    throw new Error("Method not implemented.");
+
+  async getPlaybackState(): Promise<PlaybackState> {
+    return this.playbackState;
   }
-  getCurrentTrack(): Promise<TrackDataInternal | null> {
-    throw new Error("Method not implemented.");
+
+  async getIsPlaying(): Promise<boolean> {
+    return !this.audioElement.paused;
   }
-  setSpeed(speed: number, retainPitch: boolean): Promise<void> {
+
+  async getCurrentTrack(): Promise<TrackDataInternal | null> {
     throw new Error("Method not implemented.");
   }
 
-  async addTrack(trackDataJson: TrackData): Promise<void> {
+  async getCurrentTrackWeb(): Promise<TrackData | null> {
+    return this.trackData[this.index] ?? null;
+  }
+
+  async setSpeed(speed: number, retainPitch: boolean) {
+    this.playbackSpeedOption = {
+      speed,
+      retainPitch,
+    };
+    this.audioElement.playbackRate = speed;
+    this.audioElement.preservesPitch = retainPitch;
+  }
+
+  async addTrack(trackDataJson: TrackData) {
     this.trackData.push(trackDataJson);
     if (this.index < 0) {
       this.index = 0;
     }
+    this.emitQueueChange();
   }
-  async addTrackAt(trackDataJson: TrackData, index: number): Promise<void> {
+
+  async addTrackAt(trackDataJson: TrackData, index: number) {
     if (index < 0 || index > this.trackData.length - 1) {
       throw new Error("Index out of range");
     }
+
+    // todo 对后面还在播放的曲目进行处理
     this.trackData[index] = trackDataJson;
+    this.emitQueueChange();
   }
-  async addTracks(trackDatasJson: TrackData[]): Promise<void> {
+
+  async addTracks(trackDatasJson: TrackData[]) {
     this.trackData.push(...trackDatasJson);
     if (this.index < 0) {
       this.index = 0;
     }
+    this.emitQueueChange();
   }
-  async addTracksAt(trackDatasJson: TrackData[], index: number): Promise<void> {
+
+  async addTracksAt(trackDatasJson: TrackData[], index: number) {
     if (index < 0 || index > this.trackData.length - 1) {
       throw new Error("Index out of range");
     }
+
+    // todo 对后面还在播放的曲目进行处理
     this.trackData.splice(index, 0, ...trackDatasJson);
+    this.emitQueueChange();
   }
+
   async getTracks(): Promise<TrackData[]> {
     return this.trackData;
   }
-  async replaceTrack(index: number, trackDataJson: TrackData): Promise<void> {
-    throw new Error("Method not implemented.");
-  }
-  async deleteTrack(index: number): Promise<void> {
-    throw new Error("Method not implemented.");
-  }
-  async deleteTracks(indexesJson: number[]): Promise<void> {
+
+  async replaceTrack(index: number, trackDataJson: TrackData) {
+    this.emitQueueChange();
     throw new Error("Method not implemented.");
   }
 
-  addDownload(id: string, uri: string, metadataJson: string): Promise<void> {
+  async deleteTrack(index: number) {
+    this.emitQueueChange();
     throw new Error("Method not implemented.");
   }
-  getDownload(id: string): Promise<string> {
+
+  async deleteTracks(indexesJson: number[]) {
+    this.emitQueueChange();
     throw new Error("Method not implemented.");
   }
-  getDownloads(state?: DownloadState): Promise<string> {
+
+  async addDownload(id: string, uri: string, metadataJson: string) {
     throw new Error("Method not implemented.");
   }
-  pauseDownload(id: string): Promise<void> {
+
+  async getDownload(id: string): Promise<string> {
     throw new Error("Method not implemented.");
   }
-  resumeDownload(id: string): Promise<void> {
+
+  async getDownloads(state?: DownloadState): Promise<string> {
     throw new Error("Method not implemented.");
   }
-  pauseAllDownloads(): Promise<void> {
+
+  async pauseDownload(id: string) {
     throw new Error("Method not implemented.");
   }
-  resumeAllDownloads(): Promise<void> {
+
+  async resumeDownload(id: string) {
     throw new Error("Method not implemented.");
   }
-  removeDownload(id: string): Promise<void> {
+
+  async pauseAllDownloads() {
+    throw new Error("Method not implemented.");
+  }
+
+  async resumeAllDownloads() {
+    throw new Error("Method not implemented.");
+  }
+
+  async removeDownload(id: string) {
     throw new Error("Method not implemented.");
   }
 }

@@ -19,6 +19,7 @@ export interface BilisoundPlayerModuleInterface {
   getPlaybackState(): Promise<PlaybackState>;
   getIsPlaying(): Promise<boolean>;
   getCurrentTrack(): Promise<TrackDataInternal | null>;
+  getCurrentTrackWeb(): Promise<TrackData | null>;
   setSpeed(speed: number, retainPitch: boolean): Promise<void>;
 
   // 播放队列相关

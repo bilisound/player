@@ -4,7 +4,14 @@ import { useEvents } from "bilisound-player/hooks/useEvents";
 import { useIsPlaying } from "bilisound-player/hooks/useIsPlaying";
 import { usePlaybackState } from "bilisound-player/hooks/usePlaybackState";
 import { useProgress } from "bilisound-player/hooks/useProgress";
-import { Button, StyleSheet, Text, ToastAndroid, View } from "react-native";
+import {
+  Button,
+  Platform,
+  StyleSheet,
+  Text,
+  ToastAndroid,
+  View,
+} from "react-native";
 
 import {
   getBilisoundMetadata,
@@ -30,7 +37,9 @@ async function addBiliTrack(id: string, episode = 1) {
       },
     },
   ]);
-  ToastAndroid.show("添加成功：" + id + ", " + episode, 5000);
+  if (Platform.OS === "android") {
+    ToastAndroid.show("添加成功：" + id + ", " + episode, 5000);
+  }
 }
 
 function RealTimeProgress() {

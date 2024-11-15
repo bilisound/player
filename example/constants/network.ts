@@ -7,6 +7,6 @@ export const BILIBILI_GOOD_CDN_REGEX: readonly RegExp[] = [
   /^upos-[hs]z-[a-z|0-9]+\..+\.[a-z]+$/,
 ];
 
-export const BILISOUND_API_PREFIX = process.env.EXPO_PUBLIC_API_URL;
+export const BILISOUND_API_PREFIX = "http://localhost:8787/api";
 
 export const TEST_HOST = "http://192.168.247.95:8080";

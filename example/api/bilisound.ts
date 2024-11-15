@@ -181,7 +181,10 @@ export async function getBilisoundResourceUrl(data: {
   filterResourceURL?: boolean;
 }): Promise<{ url: string; isAudio: boolean }> {
   if (Platform.OS === "web") {
-    throw new Error("getBilisoundResourceUrl 在 web 端未实现");
+    return {
+      url: `https://bilisound.tuu.run/api/internal/resource?id=${data.id}&episode=${data.episode}`,
+      isAudio: true,
+    };
   }
 
   const { id, episode } = data;
