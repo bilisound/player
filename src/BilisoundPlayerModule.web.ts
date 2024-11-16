@@ -92,11 +92,9 @@ class BilisoundPlayerModuleWeb
     });
     if (BilisoundPlayerModuleWeb.isMediaSessionAvailable) {
       navigator.mediaSession.setActionHandler("previoustrack", () =>
-        this.prevTrack(),
+        this.prev(),
       );
-      navigator.mediaSession.setActionHandler("nexttrack", () =>
-        this.nextTrack(),
-      );
+      navigator.mediaSession.setActionHandler("nexttrack", () => this.next());
     }
 
     // 挂载元素
@@ -110,6 +108,29 @@ class BilisoundPlayerModuleWeb
 
   private emitCurrentChange() {
     this.emit("onTrackChange", null);
+  }
+
+  /**
+   * 更新 Media Session，这样用户可以使用媒体键或在锁屏界面控制 Bilisound
+   */
+  private updateMediaSession() {
+    if (!BilisoundPlayerModuleWeb.isMediaSessionAvailable) {
+      return;
+    }
+    const current = this.trackData[this.index];
+    if (!current) {
+      navigator.mediaSession.metadata = null;
+      return;
+    }
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: current.title ?? "",
+      artist: current.artist ?? "",
+      artwork: [
+        {
+          src: current.artworkUri ?? "",
+        },
+      ],
+    });
   }
 
   private clear() {
@@ -177,6 +198,7 @@ class BilisoundPlayerModuleWeb
       await this.play();
     }
     this.emitCurrentChange();
+    this.updateMediaSession();
   }
 
   async getProgress(): Promise<PlaybackProgress> {
