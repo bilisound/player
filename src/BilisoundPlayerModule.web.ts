@@ -65,7 +65,7 @@ class BilisoundPlayerModuleWeb
         type: "STATE_READY",
       });
     });
-    el.addEventListener("ended", () => {
+    el.addEventListener("ended", async () => {
       if (this.index >= this.trackData.length - 1) {
         // 没有可以继续播放的内容了！
         this.playbackState = "STATE_ENDED";
@@ -74,7 +74,8 @@ class BilisoundPlayerModuleWeb
         });
       } else {
         // 播放下一首
-        this.next();
+        await this.next();
+        await this.play();
       }
     });
     el.addEventListener("play", () => {
@@ -261,7 +262,7 @@ class BilisoundPlayerModuleWeb
   }
 
   async getTracks(): Promise<TrackData[]> {
-    return this.trackData;
+    return structuredClone(this.trackData);
   }
 
   async replaceTrack(index: number, trackDataJson: TrackData) {
