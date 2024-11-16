@@ -100,10 +100,6 @@ export interface PlaybackErrorEvent {
   code?: number;
 }
 
-export interface TrackChangeEvent {
-  track: TrackDataInternal | null;
-}
-
 export interface IsPlayingChangeEvent {
   isPlaying: boolean;
 }
@@ -127,7 +123,7 @@ export interface EventList {
   onPlaybackStateChange: PlaybackStateChangeEvent;
   onPlaybackError: PlaybackErrorEvent;
   onQueueChange: null;
-  onTrackChange: TrackChangeEvent;
+  onTrackChange: null;
   onIsPlayingChange: IsPlayingChangeEvent;
   onDownloadUpdate: DownloadUpdateEvent;
   [key: string]: any;
@@ -137,7 +133,7 @@ export interface EventListFunc {
   onPlaybackStateChange: (params: PlaybackStateChangeEvent) => void;
   onPlaybackError: (params: PlaybackErrorEvent) => void;
   onQueueChange: (params: null) => void;
-  onTrackChange: (params: TrackChangeEvent) => void;
+  onTrackChange: (params: null) => void;
   onIsPlayingChange: (params: IsPlayingChangeEvent) => void;
   onDownloadUpdate: (params: DownloadUpdateEvent) => void;
   [key: string]: any;

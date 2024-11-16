@@ -74,7 +74,7 @@ class BilisoundPlayerModuleWeb
         });
       } else {
         // 播放下一首
-        this.nextTrack();
+        this.next();
       }
     });
     el.addEventListener("play", () => {
@@ -82,6 +82,12 @@ class BilisoundPlayerModuleWeb
     });
     el.addEventListener("pause", () => {
       this.emit("onIsPlayingChange", { isPlaying: false });
+    });
+    el.addEventListener("error", (e) => {
+      this.emit("onPlaybackError", {
+        type: "ERROR_GENERIC",
+        message: e.message,
+      });
     });
     if (BilisoundPlayerModuleWeb.isMediaSessionAvailable) {
       navigator.mediaSession.setActionHandler("previoustrack", () =>
@@ -97,8 +103,19 @@ class BilisoundPlayerModuleWeb
     this.audioElement = el;
   }
 
-  emitQueueChange() {
+  private emitQueueChange() {
     this.emit("onQueueChange", null);
+  }
+
+  private emitCurrentChange() {
+    this.emit("onTrackChange", null);
+  }
+
+  private clear() {
+    this.audioElement.pause();
+    this.audioElement.src = "";
+    this.index = -1;
+    this.trackData = [];
   }
 
   async play() {
@@ -119,15 +136,15 @@ class BilisoundPlayerModuleWeb
       audioElement.currentTime = 0;
       return;
     }
-    await this.jump(
-      this.index <= 0 ? this.trackData.length - 1 : this.index - 1,
-    );
+    if (this.index > 0) {
+      await this.jump(this.index - 1);
+    }
   }
 
   async next() {
-    await this.jump(
-      this.index >= this.trackData.length - 1 ? 0 : this.index + 1,
-    );
+    if (this.index < this.trackData.length - 1) {
+      await this.jump(this.index + 1);
+    }
   }
 
   async toggle() {
@@ -158,10 +175,7 @@ class BilisoundPlayerModuleWeb
     if (prevPlayState) {
       await this.play();
     }
-
-    // this.updateMediaSession();
-    // this.emitStatusEvents();
-    // this.handleIndexUpdate();
+    this.emitCurrentChange();
   }
 
   async getProgress(): Promise<PlaybackProgress> {
@@ -207,37 +221,43 @@ class BilisoundPlayerModuleWeb
   async addTrack(trackDataJson: TrackData) {
     this.trackData.push(trackDataJson);
     if (this.index < 0) {
-      this.index = 0;
+      await this.jump(0);
     }
     this.emitQueueChange();
+    this.emitCurrentChange();
   }
 
   async addTrackAt(trackDataJson: TrackData, index: number) {
     if (index < 0 || index > this.trackData.length - 1) {
       throw new Error("Index out of range");
     }
-
-    // todo 对后面还在播放的曲目进行处理
-    this.trackData[index] = trackDataJson;
+    this.trackData.splice(index, 1, trackDataJson);
+    if (this.index >= index) {
+      this.index += 1;
+    }
     this.emitQueueChange();
+    this.emitCurrentChange();
   }
 
   async addTracks(trackDatasJson: TrackData[]) {
     this.trackData.push(...trackDatasJson);
     if (this.index < 0) {
-      this.index = 0;
+      await this.jump(0);
     }
     this.emitQueueChange();
+    this.emitCurrentChange();
   }
 
   async addTracksAt(trackDatasJson: TrackData[], index: number) {
     if (index < 0 || index > this.trackData.length - 1) {
       throw new Error("Index out of range");
     }
-
-    // todo 对后面还在播放的曲目进行处理
     this.trackData.splice(index, 0, ...trackDatasJson);
+    if (this.index >= index) {
+      this.index += trackDatasJson.length;
+    }
     this.emitQueueChange();
+    this.emitCurrentChange();
   }
 
   async getTracks(): Promise<TrackData[]> {

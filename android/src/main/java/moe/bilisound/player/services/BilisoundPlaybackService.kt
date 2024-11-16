@@ -217,9 +217,7 @@ class BilisoundPlaybackService : MediaSessionService() {
             emitJSEvent(
                 bundleOf(
                     "event" to EVENT_TRACK_CHANGE,
-                    "data" to bundleOf(
-                        "track" to mediaItemToBundle(mediaItem)
-                    )
+                    "data" to null
                 )
             )
         }

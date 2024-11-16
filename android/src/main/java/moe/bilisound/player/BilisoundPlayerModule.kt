@@ -791,15 +791,7 @@ class BilisoundPlayerModule : Module() {
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-            if (mediaItem == null) {
-                this@BilisoundPlayerModule.sendEvent(EVENT_TRACK_CHANGE, bundleOf(
-                    "track" to null
-                ))
-                return
-            }
-            this@BilisoundPlayerModule.sendEvent(EVENT_TRACK_CHANGE, bundleOf(
-                "track" to mediaItemToBundle(mediaItem)
-            ))
+            this@BilisoundPlayerModule.sendEvent(EVENT_TRACK_CHANGE, null)
         }
     }
 
