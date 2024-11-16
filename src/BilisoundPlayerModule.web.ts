@@ -197,6 +197,10 @@ class BilisoundPlayerModuleWeb
     if (prevPlayState) {
       await this.play();
     }
+
+    const { speed, retainPitch } = this.playbackSpeedOption;
+    this.audioElement.playbackRate = speed;
+    this.audioElement.preservesPitch = retainPitch;
     this.emitCurrentChange();
     this.updateMediaSession();
   }
