@@ -182,6 +182,13 @@ class BilisoundPlayerModuleWeb
   }
 
   async jump(to: number) {
+    return this.setCurrent(to);
+  }
+
+  private async setCurrent(
+    to: number,
+    options: { noUpdateUri?: boolean } = {},
+  ) {
     const { audioElement } = this;
     if (!audioElement) {
       return;
@@ -192,7 +199,9 @@ class BilisoundPlayerModuleWeb
     this.index = to;
     const prevPlayState = !audioElement.paused;
     const obj = this.trackData[to];
-    audioElement.src = obj.uri;
+    if (!options.noUpdateUri) {
+      audioElement.src = obj.uri;
+    }
 
     if (prevPlayState) {
       await this.play();
@@ -292,13 +301,26 @@ class BilisoundPlayerModuleWeb
   }
 
   async replaceTrack(index: number, trackDataJson: TrackData) {
+    const previousUri = this.trackData[this.index].uri;
+    this.trackData[index] = trackDataJson;
+    if (index === this.index) {
+      await this.setCurrent(index, {
+        // URL 相比之前在 trackData 项中的变了，才对 audio element 进行显式 url 更新
+        noUpdateUri: previousUri === trackDataJson.uri,
+      });
+    }
     this.emitQueueChange();
-    throw new Error("Method not implemented.");
   }
 
   async deleteTrack(index: number) {
+    this.trackData.splice(index, 1);
+    if (index === this.index) {
+      await this.setCurrent(index, { noUpdateUri: true });
+    }
+    if (index > this.index) {
+      this.index -= 1;
+    }
     this.emitQueueChange();
-    throw new Error("Method not implemented.");
   }
 
   async deleteTracks(indexesJson: number[]) {

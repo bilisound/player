@@ -9,4 +9,4 @@ export const BILIBILI_GOOD_CDN_REGEX: readonly RegExp[] = [
 
 export const BILISOUND_API_PREFIX = "http://localhost:8787/api";
 
-export const TEST_HOST = "http://192.168.247.95:8080";
+export const TEST_HOST = "http://localhost:8080";
