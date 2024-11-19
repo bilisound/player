@@ -302,7 +302,7 @@ class BilisoundPlayerModuleWeb
 
   async replaceTrack(index: number, trackDataJson: TrackData) {
     const previousUri = this.trackData[this.index].uri;
-    this.trackData[index] = trackDataJson;
+    this.trackData[index] = structuredClone(trackDataJson);
     if (index === this.index) {
       await this.setCurrent(index, {
         // URL 相比之前在 trackData 项中的变了，才对 audio element 进行显式 url 更新
