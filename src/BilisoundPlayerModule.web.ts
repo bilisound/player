@@ -9,6 +9,7 @@ import {
   TrackDataInternal,
 } from "./types";
 import { BilisoundPlayerModuleInterface } from "./types/module";
+import { deleteItems } from "./utils";
 
 class BilisoundPlayerModuleWeb
   extends NativeModule<EventListFunc>
@@ -140,6 +141,12 @@ class BilisoundPlayerModuleWeb
     this.trackData = [];
   }
 
+  private assertInRange(index: number) {
+    if (index < 0 || index > this.trackData.length - 1) {
+      throw new Error("非法的索引值");
+    }
+  }
+
   async play() {
     await this.audioElement.play();
   }
@@ -193,9 +200,12 @@ class BilisoundPlayerModuleWeb
     if (!audioElement) {
       return;
     }
-    if (to < 0 || to >= this.trackData.length) {
-      throw new Error("非法的索引值");
+    if (this.trackData.length <= 0) {
+      audioElement.pause();
+      audioElement.src = "";
+      return;
     }
+    this.assertInRange(to);
     this.index = to;
     const prevPlayState = !audioElement.paused;
     const obj = this.trackData[to];
@@ -203,6 +213,7 @@ class BilisoundPlayerModuleWeb
       audioElement.src = obj.uri;
     }
 
+    this.emitCurrentChange();
     if (prevPlayState) {
       await this.play();
     }
@@ -210,7 +221,6 @@ class BilisoundPlayerModuleWeb
     const { speed, retainPitch } = this.playbackSpeedOption;
     this.audioElement.playbackRate = speed;
     this.audioElement.preservesPitch = retainPitch;
-    this.emitCurrentChange();
     this.updateMediaSession();
   }
 
@@ -238,7 +248,7 @@ class BilisoundPlayerModuleWeb
   }
 
   async getCurrentTrack(): Promise<TrackDataInternal | null> {
-    throw new Error("Method not implemented.");
+    return null;
   }
 
   async getCurrentTrackWeb(): Promise<TrackData | null> {
@@ -264,9 +274,7 @@ class BilisoundPlayerModuleWeb
   }
 
   async addTrackAt(trackDataJson: TrackData, index: number) {
-    if (index < 0 || index > this.trackData.length - 1) {
-      throw new Error("Index out of range");
-    }
+    this.assertInRange(index);
     this.trackData.splice(index, 1, trackDataJson);
     if (this.index >= index) {
       this.index += 1;
@@ -285,9 +293,7 @@ class BilisoundPlayerModuleWeb
   }
 
   async addTracksAt(trackDatasJson: TrackData[], index: number) {
-    if (index < 0 || index > this.trackData.length - 1) {
-      throw new Error("Index out of range");
-    }
+    this.assertInRange(index);
     this.trackData.splice(index, 0, ...trackDatasJson);
     if (this.index >= index) {
       this.index += trackDatasJson.length;
@@ -315,7 +321,7 @@ class BilisoundPlayerModuleWeb
   async deleteTrack(index: number) {
     this.trackData.splice(index, 1);
     if (index === this.index) {
-      await this.setCurrent(index, { noUpdateUri: true });
+      await this.setCurrent(index);
     }
     if (index > this.index) {
       this.index -= 1;
@@ -324,13 +330,24 @@ class BilisoundPlayerModuleWeb
   }
 
   async deleteTracks(indexesJson: number[]) {
+    if (indexesJson.includes(this.index)) {
+      // 被删除的 track 恰好是正在播放的
+      this.trackData = deleteItems(this.trackData, indexesJson);
+      if (this.index >= this.trackData.length - 1) {
+        await this.setCurrent(this.trackData.length - 1);
+      } else {
+        await this.setCurrent(this.index);
+      }
+    } else {
+      const targetId = this.trackData[this.index].id;
+      this.trackData = deleteItems(this.trackData, indexesJson);
+      this.index = this.trackData.findIndex((e) => e.id === targetId);
+    }
+
     this.emitQueueChange();
-    throw new Error("Method not implemented.");
   }
 
-  async addDownload(id: string, uri: string, metadataJson: string) {
-    throw new Error("Method not implemented.");
-  }
+  async addDownload(id: string, uri: string, metadataJson: string) {}
 
   async getDownload(id: string): Promise<string> {
     throw new Error("Method not implemented.");
@@ -340,25 +357,15 @@ class BilisoundPlayerModuleWeb
     throw new Error("Method not implemented.");
   }
 
-  async pauseDownload(id: string) {
-    throw new Error("Method not implemented.");
-  }
+  async pauseDownload(id: string) {}
 
-  async resumeDownload(id: string) {
-    throw new Error("Method not implemented.");
-  }
+  async resumeDownload(id: string) {}
 
-  async pauseAllDownloads() {
-    throw new Error("Method not implemented.");
-  }
+  async pauseAllDownloads() {}
 
-  async resumeAllDownloads() {
-    throw new Error("Method not implemented.");
-  }
+  async resumeAllDownloads() {}
 
-  async removeDownload(id: string) {
-    throw new Error("Method not implemented.");
-  }
+  async removeDownload(id: string) {}
 }
 
 export const BilisoundPlayerModule = registerWebModule(

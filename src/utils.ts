@@ -111,3 +111,11 @@ export function createSubscriptionStore<T>({
 
   return () => useSyncExternalStore(subscribe, getSnapshot);
 }
+
+export function deleteItems<T>(arr: T[], items: number[]) {
+  // 首先将 items 进行排序（降序），然后从 items 中 index 最大的一项开始就地删除数组中的内容
+  for (const index of items.toSorted((a, b) => b - a)) {
+    arr.splice(index, 1);
+  }
+  return arr;
+}
