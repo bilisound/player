@@ -21,13 +21,13 @@
     "bilisound-player",
     "BilisoundPlayer"
   ],
-  "repository": "https://github.com/tcdw/bilisound-player",
+  "repository": "https://github.com/bilisound/player",
   "bugs": {
-    "url": "https://github.com/tcdw/bilisound-player/issues"
+    "url": "https://github.com/bilisound/player/issues"
   },
   "author": "tcdw <tcdw2011@gmail.com> (https://github.com/tcdw)",
   "license": "MIT",
-  "homepage": "https://github.com/tcdw/bilisound-player#readme",
+  "homepage": "https://github.com/bilisound/player#readme",
   "dependencies": {},
   "devDependencies": {
     "@types/react": "~18.3.12",
