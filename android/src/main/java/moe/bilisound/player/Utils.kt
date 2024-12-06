@@ -15,10 +15,10 @@ fun createMediaItemFromTrack(json: String): MediaItem {
     val output = Json.decodeFromString<TrackData>(json)
 
     val extras = Bundle().apply {
-        if (output.headers != null) {
+        if (!output.headers.isNullOrEmpty()) {
             putString("headers", output.headers)
         }
-        if (output.extendedData != null) {
+        if (!output.extendedData.isNullOrEmpty()) {
             putString("extendedData", output.extendedData)
         }
     }
