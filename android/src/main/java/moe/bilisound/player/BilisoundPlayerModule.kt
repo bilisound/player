@@ -42,7 +42,7 @@ import moe.bilisound.player.services.BilisoundPlaybackService
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.concurrent.Executor
-
+import java.io.File
 
 const val TAG = "BilisoundPlayerModule"
 
@@ -59,7 +59,7 @@ class BilisoundPlayerModule : Module() {
         fun getDownloadCache(context: Context): SimpleCache {
             Log.d(TAG, "缓存初始化！orig: $downloadCache, context: $context")
             return downloadCache ?: SimpleCache(
-                context.filesDir,
+                File(context.filesDir, "bilisound_cache"),
                 NoOpCacheEvictor(),
                 getDatabaseProvider(context)
             ).also {
@@ -329,6 +329,18 @@ class BilisoundPlayerModule : Module() {
                 }
             }
         }
+
+        AsyncFunction("getCurrentTrackIndex") { promise: Promise ->
+            mainHandler.post {
+                try {
+                    val controller = getController()
+                    promise.resolve(controller.currentMediaItemIndex)
+                } catch (e: Exception) {
+                    promise.reject("PLAYER_ERROR", "无法获取播放状态 (${e.message})", e)
+                }
+            }
+        }
+
 
         AsyncFunction("getPlaybackState") { promise: Promise ->
             mainHandler.post {

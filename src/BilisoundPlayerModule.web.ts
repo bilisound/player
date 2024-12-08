@@ -255,6 +255,10 @@ class BilisoundPlayerModuleWeb
     return this.trackData[this.index] ?? null;
   }
 
+  async getCurrentTrackIndex() {
+    return this.index;
+  }
+
   async setSpeed(speed: number, retainPitch: boolean) {
     this.playbackSpeedOption = {
       speed,
