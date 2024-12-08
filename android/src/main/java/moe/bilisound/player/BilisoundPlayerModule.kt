@@ -729,7 +729,7 @@ class BilisoundPlayerModule : Module() {
     }
 
     private fun firePlaylistChangeEvent() {
-        this@BilisoundPlayerModule.sendEvent(EVENT_QUEUE_CHANGE, null)
+        this@BilisoundPlayerModule.sendEvent(EVENT_QUEUE_CHANGE)
     }
 
     private val playerListener = object : Player.Listener {
@@ -791,7 +791,7 @@ class BilisoundPlayerModule : Module() {
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-            this@BilisoundPlayerModule.sendEvent(EVENT_TRACK_CHANGE, null)
+            this@BilisoundPlayerModule.sendEvent(EVENT_TRACK_CHANGE)
         }
     }
 
