@@ -26,7 +26,7 @@ export function registerBackgroundEventListener(
   if (Platform.OS === "android") {
     AppRegistry.registerHeadlessTask(BACKGROUND_EVENT_TASK_NAME, () => {
       return async (data: any) => {
-        const handling: BackgroundEventParamUnconfirmed = data;
+        /*const handling: BackgroundEventParamUnconfirmed = data;
         switch (handling.event) {
           case "onTrackChange": {
             const track = handling.data.track;
@@ -42,7 +42,8 @@ export function registerBackgroundEventListener(
             break;
           }
         }
-        await handler(handling as any);
+        await handler(handling as any);*/
+        await handler(data);
       };
     });
   }

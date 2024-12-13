@@ -304,3 +304,12 @@ export async function resumeAllDownloads(): Promise<void> {
 export async function removeDownload(id: string): Promise<void> {
   return BilisoundPlayerModule.removeDownload(id);
 }
+
+export * from "./hooks/useCurrentTrack";
+export * from "./hooks/useDownloadTasks";
+export * from "./hooks/useEvents";
+export * from "./hooks/useIsPlaying";
+export * from "./hooks/usePlaybackState";
+export * from "./hooks/useProgress";
+export * from "./hooks/useQueue";
+export * from "./events";
