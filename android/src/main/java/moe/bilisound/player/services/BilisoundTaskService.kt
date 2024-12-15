@@ -20,6 +20,7 @@ class BilisoundTaskService: HeadlessJsTaskService() {
     }
 
     override fun onCreate() {
+        Log.i(TAG, "onCreate: 服务创建！")
         super.onCreate()
         // 创建通知渠道
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -37,6 +38,8 @@ class BilisoundTaskService: HeadlessJsTaskService() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Log.i(TAG, "onStartCommand: 命令启动！")
+        
         // 创建通知
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("播放事件服务")
@@ -46,23 +49,27 @@ class BilisoundTaskService: HeadlessJsTaskService() {
 
         // 创建只会执行数秒的短服务，以便库用户进行关于音乐播放事件的操作
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            Log.i(TAG, "onStartCommand: 启动前台服务（Android 14+）")
             startForeground(2, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SHORT_SERVICE)
         } else {
+            Log.i(TAG, "onStartCommand: 启动前台服务")
             startForeground(2, notification)
         }
 
-        return super.onStartCommand(intent, flags, startId)
+        val result = super.onStartCommand(intent, flags, startId)
+        Log.i(TAG, "onStartCommand: super.onStartCommand 返回值：$result")
+        return result
     }
 
     override fun onHeadlessJsTaskStart(taskId: Int) {
-        Log.i(TAG, "onHeadlessJsTaskStart: 后台任务开始！")
+        Log.i(TAG, "onHeadlessJsTaskStart: 后台任务开始！taskId: $taskId")
         return super.onHeadlessJsTaskStart(taskId)
     }
 
     override fun onHeadlessJsTaskFinish(taskId: Int) {
-        Log.i(TAG, "onHeadlessJsTaskFinish: 后台任务结束！")
+        Log.i(TAG, "onHeadlessJsTaskFinish: 后台任务结束！taskId: $taskId")
         stopForeground(STOP_FOREGROUND_REMOVE)
-
+        stopSelf()
         return super.onHeadlessJsTaskFinish(taskId)
     }
 
