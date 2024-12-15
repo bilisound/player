@@ -1,5 +1,5 @@
 import { addListener } from "../events";
-import { getIsPlaying } from "../index";
+import { getIsPlaying } from "../player";
 import { createSubscriptionStore } from "../utils";
 
 export const useIsPlaying = createSubscriptionStore({

@@ -1,5 +1,5 @@
 import { addListener } from "../events";
-import { getDownloads } from "../index";
+import { getDownloads } from "../player";
 import { createSubscriptionStore } from "../utils";
 
 export const useDownloadTasks = createSubscriptionStore({

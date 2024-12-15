@@ -1,5 +1,5 @@
 import { addListener } from "../events";
-import { getTracks } from "../index";
+import { getTracks } from "../player";
 import { createSubscriptionStore } from "../utils";
 
 export const useQueue = createSubscriptionStore({

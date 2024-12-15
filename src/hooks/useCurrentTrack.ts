@@ -1,5 +1,5 @@
 import { addListener } from "../events";
-import { getCurrentTrack } from "../index";
+import { getCurrentTrack } from "../player";
 import { createSubscriptionStore } from "../utils";
 
 export const useCurrentTrack = createSubscriptionStore({
