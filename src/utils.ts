@@ -72,6 +72,10 @@ export function createSubscriptionStore<T>({
   let currentValue: T = initialValue;
   let eventSubscriptions: EventSubscription[] = [];
   let timer: ReturnType<typeof setTimeout> | null = null;
+  // 防抖定时器
+  let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+  // 引用计数
+  let refCount = 0;
 
   const doFetch = async () => {
     const prevValue = currentValue;
@@ -101,15 +105,29 @@ export function createSubscriptionStore<T>({
     }
   };
 
+  const debouncedStopFetching = () => {
+    if (debounceTimer !== null) {
+      clearTimeout(debounceTimer);
+    }
+    debounceTimer = setTimeout(() => {
+      if (progressListeners.size <= 0) {
+        stopFetching();
+      }
+      debounceTimer = null;
+    }, 1000);
+  };
+
   const subscribe = (listener: () => void) => {
     progressListeners.add(listener);
+    refCount++;
     if (eventSubscriptions.length <= 0) {
       startFetching();
     }
     return () => {
       progressListeners.delete(listener);
-      if (progressListeners.size <= 0) {
-        stopFetching();
+      refCount--;
+      if (refCount <= 0) {
+        debouncedStopFetching();
       }
     };
   };
