@@ -1,4 +1,20 @@
-export type ExtendedData = any;
+/**
+ * 可供覆盖的曲目中的扩展数据类型
+ *
+ * @example
+ *
+ * ```ts
+ * // typings.d.ts or player.ts
+ * import '@bilisound/player';
+ *
+ * declare module '@bilisound/player' {
+ *   interface ExtendedData {
+ *     requiresAuth?: boolean
+ *   }
+ * }
+ * ```
+ */
+export interface ExtendedData extends Record<string, unknown> {}
 
 export interface TrackData {
   id: string;
