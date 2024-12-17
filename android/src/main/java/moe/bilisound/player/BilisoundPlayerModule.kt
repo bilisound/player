@@ -209,10 +209,6 @@ class BilisoundPlayerModule : Module() {
 
         OnStopObserving {
             Log.d(TAG, "definition: 执行监听器停止操作！")
-            mainHandler.post {
-                getController().removeListener(playerListener)
-                getDownloadManager(context.applicationContext).removeListener(downloadListener)
-            }
         }
 
         AsyncFunction("play") { promise: Promise ->

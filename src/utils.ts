@@ -50,10 +50,6 @@ interface CreateSubscriptionStoreConfig<T> {
   interval?: number;
 }
 
-// 全局监听器计数器
-// 因为 JS 是单线程的，我们可以断定这里不会出现写入冲突
-let listenerCount = 0;
-
 /**
  * 快速创建面向播放器事件的 React Hook
  * @param eventName
@@ -105,17 +101,14 @@ export function createSubscriptionStore<T>({
 
   const subscribe = (listener: () => void) => {
     progressListeners.add(listener);
-    listenerCount++;
     // 如果还没有 Expo Modules 侧的监听器，则开始监听
     if (!EventSubscription) {
       startFetching();
     }
     return () => {
       progressListeners.delete(listener);
-      listenerCount--;
       // 如果没有更多的监听器了，则停止监听
-      if (listenerCount <= 0) {
-        listenerCount = 0;
+      if (progressListeners.size <= 0) {
         stopFetching();
       }
     };
