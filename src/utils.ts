@@ -3,7 +3,7 @@ import { useSyncExternalStore } from "react";
 
 import { addListener } from "./events";
 import { Config } from "./player";
-import { TrackData, TrackDataInternal } from "./types";
+import { EventList, TrackData, TrackDataInternal } from "./types";
 
 /**
  * TrackData 转 TrackDataInternal
@@ -43,13 +43,16 @@ export function toTrackData(trackDataInternal: TrackDataInternal): TrackData {
 }
 
 interface CreateSubscriptionStoreConfig<T> {
-  eventName: string | string[];
+  eventName: keyof EventList;
   fetchData: () => Promise<T>;
   addListener: typeof addListener;
   initialValue: T;
   interval?: number;
-  isEqualMethod?: (a: T, b: T) => boolean;
 }
+
+// 全局监听器计数器
+// 因为 JS 是单线程的，我们可以断定这里不会出现写入冲突
+let listenerCount = 0;
 
 /**
  * 快速创建面向播放器事件的 React Hook
@@ -58,7 +61,6 @@ interface CreateSubscriptionStoreConfig<T> {
  * @param addListener
  * @param initialValue
  * @param interval 自动刷新间隔，不指定则不会自动刷新
- * @param isEqualMethod 对象的比较方式，可以用于避免 React 非必要渲染。如果不指定，则只要对象引用变化就触发渲染
  */
 export function createSubscriptionStore<T>({
   eventName,
@@ -66,30 +68,26 @@ export function createSubscriptionStore<T>({
   addListener,
   initialValue,
   interval,
-  isEqualMethod,
 }: CreateSubscriptionStoreConfig<T>) {
+  // React 组件侧的监听器
   const progressListeners: Set<() => void> = new Set();
+
+  // 当前读取的值
   let currentValue: T = initialValue;
-  let eventSubscriptions: EventSubscription[] = [];
+
+  // Expo Modules 侧的监听器
+  let EventSubscription: EventSubscription | undefined = undefined;
+
+  // 自动读取计时器
   let timer: ReturnType<typeof setTimeout> | null = null;
-  // 防抖定时器
-  let debounceTimer: ReturnType<typeof setTimeout> | null = null;
-  // 引用计数
-  let refCount = 0;
 
   const doFetch = async () => {
-    const prevValue = currentValue;
     currentValue = await fetchData();
-    // 如果指定 compareMethod 而且比较发现是一致的，则不触发更新
-    if (isEqualMethod && isEqualMethod(prevValue, currentValue)) {
-      return;
-    }
     progressListeners.forEach((listener) => listener());
   };
 
   const startFetching = () => {
-    const eventNames = Array.isArray(eventName) ? eventName : [eventName];
-    eventSubscriptions = eventNames.map((name) => addListener(name, doFetch));
+    EventSubscription = addListener(eventName, doFetch);
     doFetch();
     if (typeof interval === "number" && timer === null) {
       timer = setInterval(doFetch, interval);
@@ -97,37 +95,28 @@ export function createSubscriptionStore<T>({
   };
 
   const stopFetching = () => {
-    eventSubscriptions.forEach((subscription) => subscription?.remove());
-    eventSubscriptions = [];
-    if (timer !== null) {
+    EventSubscription?.remove();
+    EventSubscription = undefined;
+    if (typeof timer === "number") {
       clearInterval(timer);
       timer = null;
     }
   };
 
-  const debouncedStopFetching = () => {
-    if (debounceTimer !== null) {
-      clearTimeout(debounceTimer);
-    }
-    debounceTimer = setTimeout(() => {
-      if (progressListeners.size <= 0) {
-        stopFetching();
-      }
-      debounceTimer = null;
-    }, 1000);
-  };
-
   const subscribe = (listener: () => void) => {
     progressListeners.add(listener);
-    refCount++;
-    if (eventSubscriptions.length <= 0) {
+    listenerCount++;
+    // 如果还没有 Expo Modules 侧的监听器，则开始监听
+    if (!EventSubscription) {
       startFetching();
     }
     return () => {
       progressListeners.delete(listener);
-      refCount--;
-      if (refCount <= 0) {
-        debouncedStopFetching();
+      listenerCount--;
+      // 如果没有更多的监听器了，则停止监听
+      if (listenerCount <= 0) {
+        listenerCount = 0;
+        stopFetching();
       }
     };
   };
