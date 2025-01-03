@@ -230,6 +230,30 @@ export async function deleteTracks(index: number | number[]): Promise<void> {
 }
 
 /**
+ * 清空队列
+ */
+export async function clearQueue() {
+  await BilisoundPlayerModule.clearQueue();
+}
+
+/**
+ * 用一个新的队列替换当前队列
+ * @param trackDatas
+ */
+export function setQueue(trackDatas: TrackData[]): Promise<void> {
+  if (Platform.OS === "web") {
+    return BilisoundPlayerModule.setQueue(trackDatas);
+  }
+
+  const processedData: TrackDataInternal[] = [];
+  for (let i = 0; i < trackDatas.length; i++) {
+    const trackData = trackDatas[i];
+    processedData.push(toTrackDataInternal(trackData));
+  }
+  return BilisoundPlayerModule.setQueue(JSON.stringify(processedData));
+}
+
+/**
  * 添加下载项
  * @param id
  * @param uri

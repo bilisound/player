@@ -35,6 +35,8 @@ export interface BilisoundPlayerModuleInterface {
   replaceTrack(index: number, trackDataJson: string | TrackData): Promise<void>;
   deleteTrack(index: number): Promise<void>;
   deleteTracks(indexesJson: string | number[]): Promise<void>;
+  clearQueue(): Promise<void>;
+  setQueue(trackDatasJson: string | TrackData[]): Promise<void>;
 
   // 缓存管理相关
   addDownload(id: string, uri: string, metadataJson: string): Promise<void>;

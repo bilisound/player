@@ -578,6 +578,44 @@ class BilisoundPlayerModule : Module() {
             }
         }
 
+        AsyncFunction("clearQueue") { promise: Promise ->
+            mainHandler.post {
+                try {
+                    val controller = getController()
+                    controller.clearMediaItems()
+                    promise.resolve()
+                    firePlaylistChangeEvent()
+                } catch (e: Exception) {
+                    promise.reject("PLAYER_ERROR", "无法清空曲目列表 (${e.message})", e)
+                }
+            }
+        }
+
+        AsyncFunction("setQueue") { jsonContent: String, promise: Promise ->
+            mainHandler.post {
+                try {
+                    Log.d(TAG, "用户尝试替换整个播放队列。接收内容：$jsonContent")
+                    val jsonArray = JSONArray(jsonContent)
+                    val mediaItems = mutableListOf<MediaItem>()
+
+                    for (i in 0 until jsonArray.length()) {
+                        val trackJson = jsonArray.getString(i)
+                        Log.d(TAG, "接收内容：$trackJson")
+                        val mediaItem = createMediaItemFromTrack(trackJson)
+                        mediaItems.add(mediaItem)
+                    }
+
+                    val controller = getController()
+                    controller.clearMediaItems()
+                    controller.addMediaItems(0, mediaItems)
+                    promise.resolve()
+                    firePlaylistChangeEvent()
+                } catch (e: Exception) {
+                    promise.reject("PLAYER_ERROR", "无法在指定位置批量添加曲目 (${e.message})", e)
+                }
+            }
+        }
+
         AsyncFunction("testAction1") { promise: Promise ->
             mainHandler.post {
                 promise.resolve()

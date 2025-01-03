@@ -351,6 +351,16 @@ class BilisoundPlayerModuleWeb
     this.emitQueueChange();
   }
 
+  async clearQueue() {
+    this.clear();
+    this.emitQueueChange();
+  }
+
+  async setQueue(trackDatasJson: TrackData[]) {
+    this.clear();
+    await this.addTracks(trackDatasJson);
+  }
+
   async addDownload(id: string, uri: string, metadataJson: string) {}
 
   async getDownload(id: string): Promise<string> {
