@@ -130,10 +130,41 @@ public class BilisoundPlayerModule: Module {
         // Initialize AVQueuePlayer
         player = AVQueuePlayer()
         
-        // Set up audio session
+        // Set up audio session for background playback
         do {
-            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
-            try AVAudioSession.sharedInstance().setActive(true)
+            let session = AVAudioSession.sharedInstance()
+            try session.setCategory(.playback, mode: .default, options: [.allowBluetooth, .allowAirPlay])
+            try session.setActive(true, options: .notifyOthersOnDeactivation)
+            
+            // Enable background playback
+            let commandCenter = MPRemoteCommandCenter.shared()
+            
+            // Add handler for play command
+            commandCenter.playCommand.addTarget { [weak self] _ in
+                self?.player?.play()
+                return .success
+            }
+            
+            // Add handler for pause command
+            commandCenter.pauseCommand.addTarget { [weak self] _ in
+                self?.player?.pause()
+                return .success
+            }
+            
+            // Add handler for next track command
+            commandCenter.nextTrackCommand.addTarget { [weak self] _ in
+                // TODO: Implement next track logic
+                return .success
+            }
+            
+            // Add handler for previous track command
+            commandCenter.previousTrackCommand.addTarget { [weak self] _ in
+                // TODO: Implement previous track logic
+                return .success
+            }
+            
+            // Enable playback information in control center
+            UIApplication.shared.beginReceivingRemoteControlEvents()
         } catch {
             print("\(BilisoundPlayerModule.TAG): Failed to set up audio session: \(error)")
         }
