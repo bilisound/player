@@ -8,6 +8,14 @@ public class BilisoundPlayerModule: Module {
     private var playerItems: [AVPlayerItem] = []
     private var currentIndex: Int = 0
     private var headersBank: [String: [String: String]] = [:]
+    private var timeObserverToken: Any?
+    private var artworkCache: [String: MPMediaItemArtwork] = [:]
+    
+    deinit {
+        if let token = timeObserverToken {
+            player?.removeTimeObserver(token)
+        }
+    }
     
     // Define your module's methods
     public func definition() -> ModuleDefinition {
@@ -83,12 +91,35 @@ public class BilisoundPlayerModule: Module {
             self.player?.seek(to: time)
         }
         
-        Function("skipToNext") { () -> Void in
-            // Implementation for next track
+        AsyncFunction("skipToNext") { (promise: Promise) in
+            do {
+                if let player = self.player {
+                    player.advanceToNextItem()
+                    promise.resolve()
+                } else {
+                    throw NSError(domain: "BilisoundPlayer", code: -1, userInfo: [NSLocalizedDescriptionKey: "Player is not initialized"])
+                }
+            } catch {
+                promise.reject("PLAYER_ERROR", "Failed to skip to next track: \(error.localizedDescription)")
+            }
         }
         
-        Function("skipToPrevious") { () -> Void in
-            // Implementation for previous track
+        AsyncFunction("skipToPrevious") { (promise: Promise) in
+            do {
+                if self.currentIndex > 0 {
+                    self.currentIndex -= 1
+                    if let item = self.playerItems[safe: self.currentIndex] {
+                        self.player?.replaceCurrentItem(with: item)
+                        promise.resolve()
+                    } else {
+                        throw NSError(domain: "BilisoundPlayer", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid track index"])
+                    }
+                } else {
+                    throw NSError(domain: "BilisoundPlayer", code: -1, userInfo: [NSLocalizedDescriptionKey: "Already at the first track"])
+                }
+            } catch {
+                promise.reject("PLAYER_ERROR", "Failed to skip to previous track: \(error.localizedDescription)")
+            }
         }
         
         // Add tracks functions
@@ -137,31 +168,7 @@ public class BilisoundPlayerModule: Module {
             try session.setActive(true, options: .notifyOthersOnDeactivation)
             
             // Enable background playback
-            let commandCenter = MPRemoteCommandCenter.shared()
-            
-            // Add handler for play command
-            commandCenter.playCommand.addTarget { [weak self] _ in
-                self?.player?.play()
-                return .success
-            }
-            
-            // Add handler for pause command
-            commandCenter.pauseCommand.addTarget { [weak self] _ in
-                self?.player?.pause()
-                return .success
-            }
-            
-            // Add handler for next track command
-            commandCenter.nextTrackCommand.addTarget { [weak self] _ in
-                // TODO: Implement next track logic
-                return .success
-            }
-            
-            // Add handler for previous track command
-            commandCenter.previousTrackCommand.addTarget { [weak self] _ in
-                // TODO: Implement previous track logic
-                return .success
-            }
+            setupRemoteTransportControls()
             
             // Enable playback information in control center
             UIApplication.shared.beginReceivingRemoteControlEvents()
@@ -173,47 +180,163 @@ public class BilisoundPlayerModule: Module {
         setupPlayerObservers()
     }
     
-    private func setupPlayerObservers() {
-        player?.addPeriodicTimeObserver(forInterval: CMTime(seconds: 1, preferredTimescale: 1), queue: .main) { [weak self] time in
-            // Handle playback progress updates
+    private func setupRemoteTransportControls() {
+        let commandCenter = MPRemoteCommandCenter.shared()
+        
+        // Add handler for play command
+        commandCenter.playCommand.addTarget { [weak self] _ in
+            self?.player?.play()
+            return .success
         }
         
+        // Add handler for pause command
+        commandCenter.pauseCommand.addTarget { [weak self] _ in
+            self?.player?.pause()
+            return .success
+        }
+        
+        // Add handler for next track command
+        commandCenter.nextTrackCommand.addTarget { [weak self] _ in
+            self?.player?.advanceToNextItem()
+            return .success
+        }
+        
+        // Add handler for previous track command
+        commandCenter.previousTrackCommand.addTarget { [weak self] _ in
+            guard let self = self else { return .commandFailed }
+            if self.currentIndex > 0 {
+                self.currentIndex -= 1
+                if let item = self.playerItems[safe: self.currentIndex] {
+                    self.player?.replaceCurrentItem(with: item)
+                    return .success
+                }
+            }
+            return .noSuchContent
+        }
+        
+        // Add handler for seeking
+        commandCenter.changePlaybackPositionCommand.addTarget { [weak self] event in
+            guard let self = self,
+                  let player = self.player,
+                  let positionCommand = event as? MPChangePlaybackPositionCommandEvent else {
+                return .commandFailed
+            }
+            
+            player.seek(to: CMTime(seconds: positionCommand.positionTime, preferredTimescale: 1000))
+            return .success
+        }
+    }
+    
+    private func setupPlayerObservers() {
+        // Observe playback status changes
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(handlePlaybackEnd),
             name: .AVPlayerItemDidPlayToEndTime,
             object: nil
         )
+        
+        // Add periodic time observer
+        let interval = CMTime(seconds: 1, preferredTimescale: 1)
+        timeObserverToken = player?.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
+            self?.updateNowPlayingInfo()
+        }
+        
+        // Observe item changes
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleCurrentItemChange),
+            name: .AVPlayerItemDidPlayToEndTime,
+            object: nil
+        )
     }
     
-    private func setupRemoteTransportControls() {
-        // Set up remote control event handling
-        let commandCenter = MPRemoteCommandCenter.shared()
-        
-        commandCenter.playCommand.addTarget { [weak self] _ in
-            self?.player?.play()
-            return .success
+    @objc private func handleCurrentItemChange(notification: Notification) {
+        if let item = player?.currentItem,
+           let index = playerItems.firstIndex(of: item) {
+            currentIndex = index
+            updateNowPlayingInfo()
+        }
+    }
+    
+    private func loadArtwork(urlString: String, completion: @escaping (MPMediaItemArtwork?) -> Void) {
+        // Check cache first
+        if let cachedArtwork = artworkCache[urlString] {
+            completion(cachedArtwork)
+            return
         }
         
-        commandCenter.pauseCommand.addTarget { [weak self] _ in
-            self?.player?.pause()
-            return .success
+        // Create URL
+        guard let url = URL(string: urlString) else {
+            completion(nil)
+            return
         }
         
-        commandCenter.nextTrackCommand.addTarget { [weak self] _ in
-            // Handle next track
-            return .success
+        // Create URLSession task
+        let task = URLSession.shared.dataTask(with: url) { [weak self] (data, response, error) in
+            guard let self = self,
+                  let data = data,
+                  let image = UIImage(data: data) else {
+                DispatchQueue.main.async {
+                    completion(nil)
+                }
+                return
+            }
+            
+            // Create artwork
+            let artwork = MPMediaItemArtwork(boundsSize: image.size) { _ in image }
+            
+            // Cache the artwork
+            self.artworkCache[urlString] = artwork
+            
+            // Return on main thread
+            DispatchQueue.main.async {
+                completion(artwork)
+            }
         }
         
-        commandCenter.previousTrackCommand.addTarget { [weak self] _ in
-            // Handle previous track
-            return .success
+        task.resume()
+    }
+    
+    private func updateNowPlayingInfo() {
+        guard let player = player,
+              let currentItem = player.currentItem,
+              let metadata = getTrackMetadata(from: currentItem) else {
+            return
+        }
+        
+        var nowPlayingInfo: [String: Any] = [
+            MPMediaItemPropertyTitle: metadata["title"] as? String ?? "Unknown Title",
+            MPMediaItemPropertyArtist: metadata["artist"] as? String ?? "Unknown Artist",
+            MPNowPlayingInfoPropertyElapsedPlaybackTime: CMTimeGetSeconds(currentItem.currentTime()),
+            MPMediaItemPropertyPlaybackDuration: metadata["duration"] as? Double ?? 0,
+            MPNowPlayingInfoPropertyPlaybackRate: player.rate,
+            MPNowPlayingInfoPropertyDefaultPlaybackRate: 1.0,
+            MPNowPlayingInfoPropertyPlaybackQueueCount: playerItems.count,
+            MPNowPlayingInfoPropertyPlaybackQueueIndex: currentIndex
+        ]
+        
+        // Update now playing info first without artwork
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+        
+        // Then load artwork asynchronously
+        if let artworkUrlString = metadata["artworkUri"] as? String {
+            loadArtwork(urlString: artworkUrlString) { [weak self] artwork in
+                guard let artwork = artwork else { return }
+                
+                // Update now playing info with artwork
+                if var currentInfo = MPNowPlayingInfoCenter.default().nowPlayingInfo {
+                    currentInfo[MPMediaItemPropertyArtwork] = artwork
+                    MPNowPlayingInfoCenter.default().nowPlayingInfo = currentInfo
+                }
+            }
         }
     }
     
     private func cleanupPlayer() {
         player?.pause()
         NotificationCenter.default.removeObserver(self)
+        artworkCache.removeAll()
         player = nil
     }
     
@@ -258,17 +381,17 @@ public class BilisoundPlayerModule: Module {
         return item
     }
     
-    private func getTrackMetadata(from item: AVPlayerItem) -> [String: Any] {
+    private func getTrackMetadata(from item: AVPlayerItem) -> [String: Any]? {
         if let metadata = objc_getAssociatedObject(item, &AssociatedKeys.metadata) as? [String: Any] {
             return metadata
         }
         
         // Fallback: return basic info if metadata is not available
-        var track: [String: Any] = [:]
         if let asset = item.asset as? AVURLAsset {
-            track["uri"] = asset.url.absoluteString
+            return ["uri": asset.url.absoluteString]
         }
-        return track
+        
+        return nil
     }
     
     private func firePlaylistChangeEvent() {
@@ -281,5 +404,12 @@ public class BilisoundPlayerModule: Module {
                 "tracks": jsonString
             ])
         }
+    }
+}
+
+// Helper extension for safe array access
+extension Array {
+    subscript(safe index: Int) -> Element? {
+        return indices.contains(index) ? self[index] : nil
     }
 }

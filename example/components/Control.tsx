@@ -30,7 +30,7 @@ async function addBiliTrack(id: string, episode = 1) {
       uri: res.url,
       title: info.data.title,
       artist: info.data.owner.name,
-      artworkUri: info.data.pic,
+      artworkUri: info.data.pic.replace(/^http:/, "https:"),
       duration: info.data.pages[episode - 1].duration,
       headers: {
         referer: getVideoUrl(id, episode),
