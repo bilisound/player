@@ -337,7 +337,6 @@ class BilisoundPlayerModule : Module() {
             }
         }
 
-
         AsyncFunction("getPlaybackState") { promise: Promise ->
             mainHandler.post {
                 try {

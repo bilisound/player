@@ -73,22 +73,27 @@ public class BilisoundPlayerModule: Module {
             }
         }
         
-        Function("play") { () -> Void in
+        AsyncFunction("play") { (promise: Promise) in
             self.player?.play()
+            promise.resolve()
         }
         
-        Function("pause") { () -> Void in
+        AsyncFunction("pause") { (promise: Promise) in
             self.player?.pause()
+            promise.resolve()
         }
         
-        Function("stop") { () -> Void in
+        AsyncFunction("stop") { (promise: Promise) in
             self.player?.pause()
             self.player?.seek(to: .zero)
+            promise.resolve()
         }
         
-        Function("seek") { (position: Double) -> Void in
+        AsyncFunction("seek") { (position: Double, promise: Promise) in
             let time = CMTime(seconds: position, preferredTimescale: 1000)
-            self.player?.seek(to: time)
+            self.player?.seek(to: time) { _ in
+                promise.resolve()
+            }
         }
         
         AsyncFunction("skipToNext") { (promise: Promise) in
