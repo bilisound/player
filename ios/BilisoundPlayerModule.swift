@@ -114,6 +114,24 @@ public class BilisoundPlayerModule: Module {
             }
         }
 
+        AsyncFunction("getCurrentTrack") { (promise: Promise) in
+            guard let player = self.player,
+                  let currentItem = player.currentItem,
+                  let metadata = self.getTrackMetadata(from: currentItem) else {
+                promise.reject("PLAYER_ERROR", "No track is currently playing")
+                return
+            }
+            promise.resolve(metadata)
+        }
+        
+        AsyncFunction("getCurrentTrackIndex") { (promise: Promise) in
+            guard self.currentIndex < self.playerItems.count else {
+                promise.reject("PLAYER_ERROR", "Invalid track index")
+                return
+            }
+            promise.resolve(self.currentIndex)
+        }
+        
         // Add tracks functions
         AsyncFunction("addTracks") { (jsonContent: String, promise: Promise) in
             do {
@@ -359,7 +377,8 @@ public class BilisoundPlayerModule: Module {
         // Check if this is the last item in our queue
         if currentIndex >= playerItems.count - 1 {
             print("已到达播放列表末尾，清理播放状态")
-            cleanupPlayback()
+//            cleanupPlayback()
+            restoreCurrent()
         } else {
             // If not the last item, advance to next item
             print("继续播放下一首")
@@ -486,6 +505,15 @@ public class BilisoundPlayerModule: Module {
     private func skipToNext() -> Bool {
         guard currentIndex < playerItems.count - 1 else { return false }
         currentIndex += 1
+        updatePlayerQueue()
+        
+        // Reset to beginning of current track
+        player?.seek(to: .zero)
+        
+        return true
+    }
+    
+    private func restoreCurrent() -> Bool {
         updatePlayerQueue()
         
         // Reset to beginning of current track
