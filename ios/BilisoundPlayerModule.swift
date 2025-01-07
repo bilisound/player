@@ -130,8 +130,9 @@ public class BilisoundPlayerModule: Module {
                 // Add items to our tracking array
                 self.playerItems.append(contentsOf: newItems)
                 
-                // If this is the first track
-                if self.player?.items().isEmpty ?? true {
+                // If player is not playing anything, start from the beginning
+                if self.player?.currentItem == nil {
+                    print("播放器为空，从头开始播放")
                     self.currentIndex = 0
                     self.updatePlayerQueue()
                 }
@@ -214,6 +215,14 @@ public class BilisoundPlayerModule: Module {
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(handlePlaybackEnd),
+            name: .AVPlayerItemDidPlayToEndTime,
+            object: nil
+        )
+        
+        // Observe playback end
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(playerItemDidReachEnd),
             name: .AVPlayerItemDidPlayToEndTime,
             object: nil
         )
@@ -326,6 +335,39 @@ public class BilisoundPlayerModule: Module {
         // Handle playback completion
     }
     
+    private func cleanupPlayback() {
+        // Clear now playing info
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+        
+        // Clear the queue
+        if let player = player {
+            while let lastItem = player.items().last {
+                player.remove(lastItem)
+            }
+            // Reset current item
+            player.replaceCurrentItem(with: nil)
+        }
+    }
+    
+    @objc private func playerItemDidReachEnd(notification: Notification) {
+        guard let player = player,
+              let playerItem = notification.object as? AVPlayerItem else {
+            return
+        }
+        
+        print("播放结束，当前索引：\(currentIndex)，总数：\(playerItems.count)")
+        
+        // Check if this is the last item in our queue
+        if currentIndex >= playerItems.count - 1 {
+            print("已到达播放列表末尾，清理播放状态")
+            cleanupPlayback()
+        } else {
+            // If not the last item, advance to next item
+            print("继续播放下一首")
+            skipToNext()
+        }
+    }
+    
     private struct AssociatedKeys {
         static var metadata = "com.bilisound.player.metadata"
     }
@@ -405,6 +447,14 @@ public class BilisoundPlayerModule: Module {
         if player.timeControlStatus != .playing {
             player.play()
         }
+        
+        print("当前播放队列：")
+        player.items().enumerated().forEach { index, avPlayerItem in
+            if let metadata = getTrackMetadata(from: avPlayerItem),
+               let title = metadata["title"] as? String {
+                print("[\(index)] \(title)")
+            }
+        }
     }
     
     private func skipToPrevious() -> Bool {
@@ -421,6 +471,7 @@ public class BilisoundPlayerModule: Module {
         // Otherwise, go to previous track if available
         guard currentIndex > 0 else {
             print("没有可供继续切换的歌曲")
+            player.seek(to: .zero)
             return true
         } // Return true because we still reset to beginning
         
@@ -430,7 +481,6 @@ public class BilisoundPlayerModule: Module {
         
         // Reset to beginning of current track
         player.seek(to: .zero)
-        
         return true
     }
     
