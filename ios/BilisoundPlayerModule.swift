@@ -56,6 +56,40 @@ public class BilisoundPlayerModule: Module {
         }
         
         // Player control functions
+        AsyncFunction("play") { (promise: Promise) in
+            self.player?.play()
+            promise.resolve()
+        }
+        
+        AsyncFunction("pause") { (promise: Promise) in
+            self.player?.pause()
+            promise.resolve()
+        }
+        
+        AsyncFunction("prev") { (promise: Promise) in
+            do {
+                if self.skipToPrevious() {
+                    promise.resolve()
+                } else {
+                    throw NSError(domain: "BilisoundPlayer", code: -1, userInfo: [NSLocalizedDescriptionKey: "No previous track available"])
+                }
+            } catch {
+                promise.reject("PLAYER_ERROR", "Failed to skip to previous track: \(error.localizedDescription)")
+            }
+        }
+        
+        AsyncFunction("next") { (promise: Promise) in
+            do {
+                if self.skipToNext() {
+                    promise.resolve()
+                } else {
+                    throw NSError(domain: "BilisoundPlayer", code: -1, userInfo: [NSLocalizedDescriptionKey: "No next track available"])
+                }
+            } catch {
+                promise.reject("PLAYER_ERROR", "Failed to skip to next track: \(error.localizedDescription)")
+            }
+        }
+        
         AsyncFunction("toggle") { (promise: Promise) in
             do {
                 if let player = self.player {
@@ -72,54 +106,14 @@ public class BilisoundPlayerModule: Module {
                 promise.reject("PLAYER_ERROR", "Failed to toggle playback: \(error.localizedDescription)")
             }
         }
-        
-        AsyncFunction("play") { (promise: Promise) in
-            self.player?.play()
-            promise.resolve()
-        }
-        
-        AsyncFunction("pause") { (promise: Promise) in
-            self.player?.pause()
-            promise.resolve()
-        }
-        
-        AsyncFunction("stop") { (promise: Promise) in
-            self.player?.pause()
-            self.player?.seek(to: .zero)
-            promise.resolve()
-        }
-        
+
         AsyncFunction("seek") { (position: Double, promise: Promise) in
             let time = CMTime(seconds: position, preferredTimescale: 1000)
             self.player?.seek(to: time) { _ in
                 promise.resolve()
             }
         }
-        
-        AsyncFunction("skipToNext") { (promise: Promise) in
-            do {
-                if self.skipToNext() {
-                    promise.resolve()
-                } else {
-                    throw NSError(domain: "BilisoundPlayer", code: -1, userInfo: [NSLocalizedDescriptionKey: "No next track available"])
-                }
-            } catch {
-                promise.reject("PLAYER_ERROR", "Failed to skip to next track: \(error.localizedDescription)")
-            }
-        }
-        
-        AsyncFunction("skipToPrevious") { (promise: Promise) in
-            do {
-                if self.skipToPrevious() {
-                    promise.resolve()
-                } else {
-                    throw NSError(domain: "BilisoundPlayer", code: -1, userInfo: [NSLocalizedDescriptionKey: "No previous track available"])
-                }
-            } catch {
-                promise.reject("PLAYER_ERROR", "Failed to skip to previous track: \(error.localizedDescription)")
-            }
-        }
-        
+
         // Add tracks functions
         AsyncFunction("addTracks") { (jsonContent: String, promise: Promise) in
             do {
