@@ -93,11 +93,10 @@ public class BilisoundPlayerModule: Module {
         
         AsyncFunction("skipToNext") { (promise: Promise) in
             do {
-                if let player = self.player {
-                    player.advanceToNextItem()
+                if self.skipToNext() {
                     promise.resolve()
                 } else {
-                    throw NSError(domain: "BilisoundPlayer", code: -1, userInfo: [NSLocalizedDescriptionKey: "Player is not initialized"])
+                    throw NSError(domain: "BilisoundPlayer", code: -1, userInfo: [NSLocalizedDescriptionKey: "No next track available"])
                 }
             } catch {
                 promise.reject("PLAYER_ERROR", "Failed to skip to next track: \(error.localizedDescription)")
@@ -106,16 +105,10 @@ public class BilisoundPlayerModule: Module {
         
         AsyncFunction("skipToPrevious") { (promise: Promise) in
             do {
-                if self.currentIndex > 0 {
-                    self.currentIndex -= 1
-                    if let item = self.playerItems[safe: self.currentIndex] {
-                        self.player?.replaceCurrentItem(with: item)
-                        promise.resolve()
-                    } else {
-                        throw NSError(domain: "BilisoundPlayer", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid track index"])
-                    }
+                if self.skipToPrevious() {
+                    promise.resolve()
                 } else {
-                    throw NSError(domain: "BilisoundPlayer", code: -1, userInfo: [NSLocalizedDescriptionKey: "Already at the first track"])
+                    throw NSError(domain: "BilisoundPlayer", code: -1, userInfo: [NSLocalizedDescriptionKey: "No previous track available"])
                 }
             } catch {
                 promise.reject("PLAYER_ERROR", "Failed to skip to previous track: \(error.localizedDescription)")
@@ -137,14 +130,10 @@ public class BilisoundPlayerModule: Module {
                 // Add items to our tracking array
                 self.playerItems.append(contentsOf: newItems)
                 
-                // If player is not initialized, create it with all items
-                if self.player == nil {
-                    self.player = AVQueuePlayer(items: self.playerItems)
-                } else {
-                    // Add new items to the queue
-                    for item in newItems {
-                        self.player?.insert(item, after: nil) // Add to end of queue
-                    }
+                // If this is the first track
+                if self.player?.items().isEmpty ?? true {
+                    self.currentIndex = 0
+                    self.updatePlayerQueue()
                 }
                 
                 // Fire playlist change event
@@ -197,21 +186,14 @@ public class BilisoundPlayerModule: Module {
         
         // Add handler for next track command
         commandCenter.nextTrackCommand.addTarget { [weak self] _ in
-            self?.player?.advanceToNextItem()
-            return .success
+            guard let self = self else { return .commandFailed }
+            return self.skipToNext() ? .success : .noSuchContent
         }
         
         // Add handler for previous track command
         commandCenter.previousTrackCommand.addTarget { [weak self] _ in
             guard let self = self else { return .commandFailed }
-            if self.currentIndex > 0 {
-                self.currentIndex -= 1
-                if let item = self.playerItems[safe: self.currentIndex] {
-                    self.player?.replaceCurrentItem(with: item)
-                    return .success
-                }
-            }
-            return .noSuchContent
+            return self.skipToPrevious() ? .success : .noSuchContent
         }
         
         // Add handler for seeking
@@ -404,6 +386,63 @@ public class BilisoundPlayerModule: Module {
                 "tracks": jsonString
             ])
         }
+    }
+    
+    private func updatePlayerQueue() {
+        guard let player = player else { return }
+        
+        // Remove all items
+        while player.items().count > 0 {
+            player.remove(player.items().last!)
+        }
+        
+        // Add all items from current index
+        for item in playerItems[currentIndex...] {
+            player.insert(item, after: player.items().last)
+        }
+        
+        // Start playing if not already
+        if player.timeControlStatus != .playing {
+            player.play()
+        }
+    }
+    
+    private func skipToPrevious() -> Bool {
+        guard let player = player,
+              let currentItem = player.currentItem else { return false }
+        
+        let currentTime = CMTimeGetSeconds(currentItem.currentTime())
+        
+        if currentTime >= 3.0 {
+            player.seek(to: .zero)
+            return true
+        }
+        
+        // Otherwise, go to previous track if available
+        guard currentIndex > 0 else {
+            print("没有可供继续切换的歌曲")
+            return true
+        } // Return true because we still reset to beginning
+        
+        print("正在切换到上一首歌曲")
+        currentIndex -= 1
+        updatePlayerQueue()
+        
+        // Reset to beginning of current track
+        player.seek(to: .zero)
+        
+        return true
+    }
+    
+    private func skipToNext() -> Bool {
+        guard currentIndex < playerItems.count - 1 else { return false }
+        currentIndex += 1
+        updatePlayerQueue()
+        
+        // Reset to beginning of current track
+        player?.seek(to: .zero)
+        
+        return true
     }
 }
 

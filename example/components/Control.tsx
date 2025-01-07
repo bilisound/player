@@ -20,10 +20,12 @@ import {
 } from "~/api/bilisound";
 import { AddCustom } from "~/components/AddCustom";
 import { TEST_HOST } from "~/constants/network";
+import log from "~/utils/logger";
 
 async function addBiliTrack(id: string, episode = 1) {
   const info = await getBilisoundMetadata({ id });
   const res = await getBilisoundResourceUrl({ id, episode });
+  log.debug("添加曲目 URL: " + res.url);
   await BilisoundPlayer.addTracks([
     {
       id: `bs_${id}_${episode}`,

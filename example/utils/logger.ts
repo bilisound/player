@@ -13,7 +13,7 @@ const config = {
     warn: 2,
     error: 3,
   },
-  severity: "info",
+  severity: "debug",
   async: true,
   dateFormat: "time",
   printLevel: true,
