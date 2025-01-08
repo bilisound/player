@@ -24,9 +24,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
 import moe.bilisound.player.BilisoundPlayerModule
 import moe.bilisound.player.ERROR_BAD_HTTP_STATUS_CODE
@@ -61,7 +61,7 @@ class BilisoundPlaybackService : MediaSessionService() {
         val dataSourceFactory = CacheDataSource.Factory()
             .setCache(BilisoundPlayerModule.getDownloadCache(applicationContext)) // 确保 downloadCache 已正确初始化
             .setUpstreamDataSourceFactory {
-                BilisoundPlayerModule.getDataSourceFactory()
+                BilisoundPlayerModule.getDataSourceFactory(this)
                     .createDataSource()
             }
             .setCacheWriteDataSinkFactory(null) // 禁用写入

@@ -16,7 +16,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.database.DatabaseProvider
 import androidx.media3.database.StandaloneDatabaseProvider
 import androidx.media3.datasource.DataSpec
-import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.HttpDataSource
 import androidx.media3.datasource.ResolvingDataSource
 import androidx.media3.datasource.cache.NoOpCacheEvictor
@@ -89,10 +89,10 @@ class BilisoundPlayerModule : Module() {
         }
 
         @Synchronized
-        fun getDataSourceFactory(): ResolvingDataSource.Factory {
+        fun getDataSourceFactory(context: Context): ResolvingDataSource.Factory {
             if (dataSourceFactory == null) {
-                val httpDataSourceFactory = DefaultHttpDataSource.Factory()
-                dataSourceFactory = ResolvingDataSource.Factory(httpDataSourceFactory) { dataSpec: DataSpec ->
+                val defaultDataSourceFactory = DefaultDataSource.Factory(context)
+                dataSourceFactory = ResolvingDataSource.Factory(defaultDataSourceFactory) { dataSpec: DataSpec ->
                     val got = getHeadersOnBank(dataSpec.key ?: "")
                     if (got != null) {
                         Log.d(TAG, "getDataSourceFactory: 已经进行 header 消费操作。key: ${dataSpec.key}, got: $got")
@@ -111,7 +111,7 @@ class BilisoundPlayerModule : Module() {
             }
             val databaseProvider = getDatabaseProvider(context)
             val downloadCache = getDownloadCache(context)
-            val dataSourceFactory = getDataSourceFactory()
+            val dataSourceFactory = getDataSourceFactory(context)
             val downloadExecutor = Executor(Runnable::run)
 
             // Create the download manager.

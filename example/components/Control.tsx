@@ -119,7 +119,7 @@ export function Control() {
         onPress={async () =>
           await BilisoundPlayer.replaceTrack(1, {
             id: "test_song",
-            uri: "https://assets.tcdww.cn/website/test/05 パシオン.m4a",
+            uri: "file:///data/data/moe.bilisound.player.example/files/example.m4a",
             artworkUri: "https://assets.tcdww.cn/website/test/8%20(106).jpg",
             title: "测试标题 " + Math.random(),
           })
