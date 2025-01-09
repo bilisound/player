@@ -473,11 +473,14 @@ public class BilisoundPlayerModule: Module {
         
         // Store metadata as associated object
         var metadata: [String: Any] = [:]
+        metadata["id"] = track["id"] as? String
         metadata["uri"] = urlString
         metadata["title"] = track["title"] as? String
         metadata["artist"] = track["artist"] as? String
         metadata["artworkUri"] = track["artworkUri"] as? String
         metadata["duration"] = track["duration"] as? Double
+        metadata["headers"] = track["headers"] as? String
+        metadata["extendedData"] = track["extendedData"] as? String
         
         objc_setAssociatedObject(item, &AssociatedKeys.metadata, metadata, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         

@@ -19,7 +19,6 @@ import {
   getVideoUrl,
 } from "~/api/bilisound";
 import { AddCustom } from "~/components/AddCustom";
-import { TEST_HOST } from "~/constants/network";
 import log from "~/utils/logger";
 
 async function addBiliTrack(id: string, episode = 1) {
@@ -36,6 +35,9 @@ async function addBiliTrack(id: string, episode = 1) {
       duration: info.data.pages[episode - 1].duration,
       headers: {
         referer: getVideoUrl(id, episode),
+      },
+      extendedData: {
+        foo: "bar",
       },
     },
   ]);
