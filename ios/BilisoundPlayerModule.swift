@@ -358,7 +358,32 @@ public class BilisoundPlayerModule: Module {
             }
         }
 
-        // todo replaceTrack
+        AsyncFunction("replaceTrack") { (index: Int, jsonContent: String, promise: Promise) in
+            do {
+                print("\(BilisoundPlayerModule.TAG): User attempting to replace track at index \(index)")
+                guard let jsonData = jsonContent.data(using: .utf8),
+                      let trackDict = try JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else {
+                    throw NSError(domain: "BilisoundPlayer", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid JSON format"])
+                }
+                
+                // Validate index
+                guard index >= 0 && index < self.playerItems.count else {
+                    throw NSError(domain: "BilisoundPlayer", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid index"])
+                }
+                
+                // Create new AVPlayerItem for the track
+                let newItem = try self.createPlayerItem(from: trackDict)
+                
+                // Replace the item at the specified index
+                self.playerItems[index] = newItem
+                self.updatePlayerQueue()
+                self.firePlaylistChangeEvent()
+                
+                promise.resolve()
+            } catch {
+                promise.reject("PLAYER_ERROR", "Failed to replace track: \(error.localizedDescription)")
+            }
+        }
 
         // todo deleteTrack
 
