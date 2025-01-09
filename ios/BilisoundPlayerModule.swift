@@ -241,7 +241,30 @@ public class BilisoundPlayerModule: Module {
             }
         }
 
-        // todo addTrackAt
+        AsyncFunction("addTrackAt") { (jsonContent: String, index: Int, promise: Promise) in
+            do {
+                print("\(BilisoundPlayerModule.TAG): User attempting to add a track at index \(index)")
+                guard let jsonData = jsonContent.data(using: .utf8),
+                      let trackDict = try JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else {
+                    throw NSError(domain: "BilisoundPlayer", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid JSON format"])
+                }
+                
+                // Create AVPlayerItem for the track
+                let newItem = try self.createPlayerItem(from: trackDict)
+                
+                // Insert the item at the specified index
+                if index >= 0 && index <= self.playerItems.count {
+                    self.playerItems.insert(newItem, at: index)
+                    self.updatePlayerQueue()
+                    self.firePlaylistChangeEvent()
+                    promise.resolve()
+                } else {
+                    throw NSError(domain: "BilisoundPlayer", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid index"])
+                }
+            } catch {
+                promise.reject("PLAYER_ERROR", "Failed to add track at index: \(error.localizedDescription)")
+            }
+        }
 
         AsyncFunction("addTracks") { (jsonContent: String, promise: Promise) in
             do {
@@ -263,7 +286,30 @@ public class BilisoundPlayerModule: Module {
             }
         }
 
-        // todo addTracksAt
+        AsyncFunction("addTracksAt") { (jsonContent: String, index: Int, promise: Promise) in
+            do {
+                print("\(BilisoundPlayerModule.TAG): User attempting to add multiple tracks at index \(index)")
+                guard let jsonData = jsonContent.data(using: .utf8),
+                      let tracksArray = try JSONSerialization.jsonObject(with: jsonData) as? [[String: Any]] else {
+                    throw NSError(domain: "BilisoundPlayer", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid JSON format"])
+                }
+                
+                // Create AVPlayerItems for each track
+                let newItems = try tracksArray.map { try self.createPlayerItem(from: $0) }
+                
+                // Insert items at the specified index
+                if index >= 0 && index <= self.playerItems.count {
+                    self.playerItems.insert(contentsOf: newItems, at: index)
+                    self.updatePlayerQueue()
+                    self.firePlaylistChangeEvent()
+                    promise.resolve()
+                } else {
+                    throw NSError(domain: "BilisoundPlayer", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid index"])
+                }
+            } catch {
+                promise.reject("PLAYER_ERROR", "Failed to add tracks at index: \(error.localizedDescription)")
+            }
+        }
 
         AsyncFunction("getTracks") { (promise: Promise) in
             do {
