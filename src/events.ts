@@ -31,6 +31,15 @@ export function registerBackgroundEventListener(
     });
     return;
   }
+
+  BilisoundPlayerModule.removeAllListeners("onPlaybackStateChange");
+  BilisoundPlayerModule.removeAllListeners("onPlaybackError");
+  BilisoundPlayerModule.removeAllListeners("onQueueChange");
+  BilisoundPlayerModule.removeAllListeners("onTrackChange");
+  BilisoundPlayerModule.removeAllListeners("onIsPlayingChange");
+  BilisoundPlayerModule.removeAllListeners("onPlayingProgressChange");
+  BilisoundPlayerModule.removeAllListeners("onDownloadUpdate");
+
   addListener("onPlaybackStateChange", (data) =>
     handler({
       event: "onPlaybackStateChange",
