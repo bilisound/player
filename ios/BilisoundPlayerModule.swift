@@ -132,6 +132,50 @@ public class BilisoundPlayerModule: Module {
             promise.resolve(self.currentIndex)
         }
         
+        AsyncFunction("getTracks") { (promise: Promise) in
+            do {
+                guard let player = self.player else {
+                    promise.resolve("[]")
+                    return
+                }
+                
+                var tracks: [[String: Any]] = []
+                
+                for (index, item) in self.playerItems.enumerated() {
+                    if let metadata = self.getTrackMetadata(from: item) {
+                        var trackInfo: [String: Any] = [
+                            "id": metadata["id"] as? String ?? "",
+                            "uri": metadata["uri"] as? String ?? "",
+                            "title": metadata["title"] as? String ?? "",
+                            "artist": metadata["artist"] as? String ?? "",
+                            "duration": metadata["duration"] as? Double ?? 0
+                        ]
+                        
+                        if let artworkUri = metadata["artworkUri"] as? String {
+                            trackInfo["artworkUri"] = artworkUri
+                        }
+                        if let headers = metadata["headers"] as? String {
+                            trackInfo["headers"] = headers
+                        }
+                        if let extendedData = metadata["extendedData"] as? String {
+                            trackInfo["extendedData"] = extendedData
+                        }
+                        
+                        tracks.append(trackInfo)
+                    }
+                }
+                
+                let jsonData = try JSONSerialization.data(withJSONObject: tracks)
+                if let jsonString = String(data: jsonData, encoding: .utf8) {
+                    promise.resolve(jsonString)
+                } else {
+                    throw NSError(domain: "BilisoundPlayer", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to encode tracks to JSON string"])
+                }
+            } catch {
+                promise.reject("PLAYER_ERROR", "Failed to get track list (\(error.localizedDescription))")
+            }
+        }
+        
         // Add tracks functions
         AsyncFunction("addTracks") { (jsonContent: String, promise: Promise) in
             do {
@@ -313,7 +357,7 @@ public class BilisoundPlayerModule: Module {
             return
         }
         
-        var nowPlayingInfo: [String: Any] = [
+        let nowPlayingInfo: [String: Any] = [
             MPMediaItemPropertyTitle: metadata["title"] as? String ?? "Unknown Title",
             MPMediaItemPropertyArtist: metadata["artist"] as? String ?? "Unknown Artist",
             MPNowPlayingInfoPropertyElapsedPlaybackTime: CMTimeGetSeconds(currentItem.currentTime()),
@@ -367,17 +411,11 @@ public class BilisoundPlayerModule: Module {
     }
     
     @objc private func playerItemDidReachEnd(notification: Notification) {
-        guard let player = player,
-              let playerItem = notification.object as? AVPlayerItem else {
-            return
-        }
-        
         print("播放结束，当前索引：\(currentIndex)，总数：\(playerItems.count)")
         
         // Check if this is the last item in our queue
         if currentIndex >= playerItems.count - 1 {
             print("已到达播放列表末尾，清理播放状态")
-//            cleanupPlayback()
             restoreCurrent()
         } else {
             // If not the last item, advance to next item
