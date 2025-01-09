@@ -21,12 +21,18 @@ public class BilisoundPlayerModule: Module {
         if let token = timeObserverToken {
             player?.removeTimeObserver(token)
         }
-        
+
         // Remove playback state observer
         if let observer = playbackStateObserver {
             player?.removeObserver(observer, forKeyPath: #keyPath(AVPlayer.timeControlStatus))
         }
         playbackStateObserver = nil
+
+        // Remove media item transition observer
+        if let observer = mediaItemTransitionObserver {
+            player?.removeObserver(observer, forKeyPath: #keyPath(AVPlayer.currentItem))
+        }
+        mediaItemTransitionObserver = nil
     }
 
     // Define your module's methods
@@ -40,7 +46,8 @@ public class BilisoundPlayerModule: Module {
             "onQueueChange",
             "onTrackChange",
             "onIsPlayingChange",
-            "onDownloadUpdate"
+            "onDownloadUpdate",
+            "onMediaItemTransition"
         )
 
         OnCreate {
@@ -620,12 +627,12 @@ public class BilisoundPlayerModule: Module {
 
     private class PlaybackStateObserver: NSObject {
         weak var module: BilisoundPlayerModule?
-        
+
         init(module: BilisoundPlayerModule) {
             self.module = module
             super.init()
         }
-        
+
         override func observeValue(
             forKeyPath keyPath: String?,
             of object: Any?,
@@ -653,27 +660,83 @@ public class BilisoundPlayerModule: Module {
                 }
 
                 // Send playback state change event
-                module?.sendEvent("onPlaybackStateChange", [
-                    "state": state
-                ])
+                module?.sendEvent(
+                    "onPlaybackStateChange",
+                    [
+                        "state": state
+                    ])
 
                 // Also send isPlaying state change
                 let isPlaying = player.timeControlStatus == .playing
-                module?.sendEvent("onIsPlayingChange", [
-                    "isPlaying": isPlaying
-                ])
+                module?.sendEvent(
+                    "onIsPlayingChange",
+                    [
+                        "isPlaying": isPlaying
+                    ])
             }
         }
     }
 
     private var playbackStateObserver: PlaybackStateObserver?
 
+    private class MediaItemTransitionObserver: NSObject {
+        weak var module: BilisoundPlayerModule?
+
+        init(module: BilisoundPlayerModule) {
+            self.module = module
+            super.init()
+        }
+
+        override func observeValue(
+            forKeyPath keyPath: String?,
+            of object: Any?,
+            change: [NSKeyValueChangeKey: Any]?,
+            context: UnsafeMutableRawPointer?
+        ) {
+            if keyPath == #keyPath(AVPlayer.currentItem) {
+                // Get the new item
+                guard let player = object as? AVPlayer,
+                    let newItem = player.currentItem
+                else {
+                    return
+                }
+
+                // Find the index of the new item
+                if let index = module?.playerItems.firstIndex(of: newItem) {
+                    module?.currentIndex = index
+
+                    // Get metadata for the new track
+                    if let metadata = module?.getTrackMetadata(from: newItem) {
+                        // Send track change event
+                        module?.sendEvent(
+                            "onTrackChange",
+                            [
+                                "index": index,
+                                "track": metadata,
+                            ])
+                    }
+
+                    // Update now playing info
+                    module?.updateNowPlayingInfo()
+                }
+            }
+        }
+    }
+
+    private var mediaItemTransitionObserver: MediaItemTransitionObserver?
+
     private func setupPlayer() {
         // Initialize AVQueuePlayer
         player = AVQueuePlayer()
 
-        // Initialize player item observer
-        // playerItemObserver = PlayerItemObserver(module: self)
+        // Initialize observers
+        mediaItemTransitionObserver = MediaItemTransitionObserver(module: self)
+        player?.addObserver(
+            mediaItemTransitionObserver!,
+            forKeyPath: #keyPath(AVPlayer.currentItem),
+            options: [.old, .new],
+            context: nil
+        )
 
         // Set up audio session for background playback
         do {
@@ -768,19 +831,20 @@ public class BilisoundPlayerModule: Module {
             self?.updateNowPlayingInfo()
         }
 
-        // Observe item changes
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(handleCurrentItemChange),
-            name: .AVPlayerItemDidPlayToEndTime,
-            object: nil
-        )
-
         // Setup playback state observer
         playbackStateObserver = PlaybackStateObserver(module: self)
         player?.addObserver(
             playbackStateObserver!,
             forKeyPath: #keyPath(AVPlayer.timeControlStatus),
+            options: [.old, .new],
+            context: nil
+        )
+
+        // Setup media item transition observer
+        mediaItemTransitionObserver = MediaItemTransitionObserver(module: self)
+        player?.addObserver(
+            mediaItemTransitionObserver!,
+            forKeyPath: #keyPath(AVPlayer.currentItem),
             options: [.old, .new],
             context: nil
         )
@@ -870,13 +934,15 @@ public class BilisoundPlayerModule: Module {
         {
             currentIndex = index
             updateNowPlayingInfo()
-            
+
             // Send track change event
             if let metadata = getTrackMetadata(from: item) {
-                sendEvent("onTrackChange", [
-                    "index": index,
-                    "track": metadata
-                ])
+                sendEvent(
+                    "onTrackChange",
+                    [
+                        "index": index,
+                        "track": metadata,
+                    ])
             }
         }
     }
