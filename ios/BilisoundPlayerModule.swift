@@ -119,14 +119,14 @@ public class BilisoundPlayerModule: Module {
         
         AsyncFunction("getTracks") { (promise: Promise) in
             do {
-                guard let player = self.player else {
+                guard self.player != nil else {
                     promise.resolve("[]")
                     return
                 }
                 
                 var tracks: [[String: Any]] = []
                 
-                for (index, item) in self.playerItems.enumerated() {
+                for (_, item) in self.playerItems.enumerated() {
                     if let metadata = self.getTrackMetadata(from: item) {
                         var trackInfo: [String: Any] = [
                             "id": metadata["id"] as? String ?? "",
@@ -196,7 +196,7 @@ public class BilisoundPlayerModule: Module {
         
         AsyncFunction("jump") { (to: Int, promise: Promise) in
             do {
-                guard let player = self.player else {
+                guard self.player != nil else {
                     throw NSError(domain: "BilisoundPlayer", code: -1, userInfo: [NSLocalizedDescriptionKey: "Player is not initialized"])
                 }
                 
