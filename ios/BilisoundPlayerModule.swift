@@ -205,7 +205,21 @@ public class BilisoundPlayerModule: Module {
             ])
         }
 
-        // todo setSpeed
+        AsyncFunction("setSpeed") { (speed: Float, retainPitch: Bool, promise: Promise) in
+            guard let player = self.player,
+                  let currentItem = player.currentItem else {
+                promise.reject("PLAYER_ERROR", "Player is not initialized")
+                return
+            }
+            
+            // Set pitch algorithm
+            currentItem.audioTimePitchAlgorithm = retainPitch ? .timeDomain : .varispeed
+            
+            // Set playback rate
+            player.rate = speed
+            
+            promise.resolve()
+        }
 
         // todo addTrack
 
