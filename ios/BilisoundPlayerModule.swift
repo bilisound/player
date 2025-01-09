@@ -215,9 +215,77 @@ public class BilisoundPlayerModule: Module {
         }
     }
     
+    private class PlayerItemObserver: NSObject {
+        weak var module: BilisoundPlayerModule?
+        
+        init(module: BilisoundPlayerModule) {
+            self.module = module
+            super.init()
+        }
+        
+        override func observeValue(forKeyPath keyPath: String?,
+                                 of object: Any?,
+                                 change: [NSKeyValueChangeKey : Any]?,
+                                 context: UnsafeMutableRawPointer?) {
+            guard let item = object as? AVPlayerItem else { return }
+            
+            if keyPath == #keyPath(AVPlayerItem.status) {
+                let status: AVPlayerItem.Status
+                if let statusNumber = change?[.newKey] as? NSNumber {
+                    status = AVPlayerItem.Status(rawValue: statusNumber.intValue) ?? .unknown
+                } else {
+                    status = .unknown
+                }
+                
+                switch status {
+                case .failed:
+                    if let error = item.error as NSError? {
+                        var errorType = "ERROR_GENERIC"
+                        var message = error.localizedDescription
+                        
+                        // Check for format-related errors
+                        if error.domain == AVFoundationErrorDomain {
+                            switch error.code {
+                            case AVError.Code.fileFormatNotRecognized.rawValue,
+                                 AVError.Code.contentIsNotAuthorized.rawValue,
+                                 AVError.Code.decoderTemporarilyUnavailable.rawValue,
+                                 AVError.Code.decoderNotFound.rawValue:
+                                errorType = "ERROR_UNSUPPORTED_FORMAT"
+                                message = "Unsupported audio format or codec"
+                            default:
+                                break
+                            }
+                        }
+                        
+                        print("捕获播放错误：\(message)，错误代码：\(error.code)，错误域：\(error.domain)")
+                        
+                        // Send error event to RN through the module
+                        module?.sendEvent("onPlaybackError", [
+                            "type": errorType,
+                            "message": message
+                        ])
+                    }
+                case .readyToPlay:
+                    // Item is ready to play
+                    break
+                case .unknown:
+                    // Unknown status
+                    break
+                @unknown default:
+                    break
+                }
+            }
+        }
+    }
+    
+    private var playerItemObserver: PlayerItemObserver?
+    
     private func setupPlayer() {
         // Initialize AVQueuePlayer
         player = AVQueuePlayer()
+        
+        // Initialize player item observer
+        playerItemObserver = PlayerItemObserver(module: self)
         
         // Set up audio session for background playback
         do {
@@ -482,6 +550,9 @@ public class BilisoundPlayerModule: Module {
         }
         
         let item = AVPlayerItem(asset: asset)
+        
+        // Add KVO observer for item status
+        item.addObserver(playerItemObserver!, forKeyPath: #keyPath(AVPlayerItem.status), options: [.new], context: nil)
         
         objc_setAssociatedObject(item, &AssociatedKeys.metadata, metadata, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         
