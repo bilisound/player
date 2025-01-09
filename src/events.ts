@@ -26,26 +26,51 @@ export function registerBackgroundEventListener(
   if (Platform.OS === "android") {
     AppRegistry.registerHeadlessTask(BACKGROUND_EVENT_TASK_NAME, () => {
       return async (data: any) => {
-        /*const handling: BackgroundEventParamUnconfirmed = data;
-        switch (handling.event) {
-          case "onTrackChange": {
-            const track = handling.data.track;
-            track.headers = track.headers
-              ? JSON.parse(track.headers)
-              : undefined;
-            track.extendedData = track.extendedData
-              ? JSON.parse(track.extendedData)
-              : undefined;
-            break;
-          }
-          default: {
-            break;
-          }
-        }
-        await handler(handling as any);*/
         await handler(data);
       };
     });
+    return;
   }
-  // todo ios 和 web 需要用不同的方式处理后台事件
+  addListener("onPlaybackStateChange", (data) =>
+    handler({
+      event: "onPlaybackStateChange",
+      data,
+    }),
+  );
+  addListener("onPlaybackError", (data) =>
+    handler({
+      event: "onPlaybackError",
+      data,
+    }),
+  );
+  addListener("onQueueChange", (data) =>
+    handler({
+      event: "onQueueChange",
+      data,
+    }),
+  );
+  addListener("onTrackChange", (data) =>
+    handler({
+      event: "onTrackChange",
+      data,
+    }),
+  );
+  addListener("onIsPlayingChange", (data) =>
+    handler({
+      event: "onIsPlayingChange",
+      data,
+    }),
+  );
+  addListener("onPlayingProgressChange", (data) =>
+    handler({
+      event: "onPlayingProgressChange",
+      data,
+    }),
+  );
+  addListener("onDownloadUpdate", (data) =>
+    handler({
+      event: "onDownloadUpdate",
+      data,
+    }),
+  );
 }
