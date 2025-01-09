@@ -537,17 +537,19 @@ public class BilisoundPlayerModule: Module {
         metadata["extendedData"] = track["extendedData"] as? String
         
         var asset: AVURLAsset
+        var options: [String: Any] = [:]
+        // todo 允许用户配置
+        if #available(iOS 17.0, *) {
+            options[AVURLAssetOverrideMIMETypeKey] = "video/mp4"
+        }
         if let headersString = metadata["headers"] as? String,
            let headersData = headersString.data(using: .utf8),
            let headers = try? JSONSerialization.jsonObject(with: headersData) as? [String: String] {
-            // Create asset with headers
-            let options = ["AVURLAssetHTTPHeaderFieldsKey": headers]
-            print(options)
-            asset = AVURLAsset(url: url, options: options)
-        } else {
-            // Create asset without headers
-            asset = AVURLAsset(url: url)
+            // Create asset with headers and MIME type override
+            options["AVURLAssetHTTPHeaderFieldsKey"] = headers
         }
+        print(options)
+        asset = AVURLAsset(url: url, options: options)
         
         let item = AVPlayerItem(asset: asset)
         
