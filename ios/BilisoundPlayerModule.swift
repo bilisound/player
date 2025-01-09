@@ -441,20 +441,6 @@ public class BilisoundPlayerModule: Module {
             throw NSError(domain: "BilisoundPlayer", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])
         }
         
-        var asset: AVURLAsset
-        if let headersString = track["headers"] as? String,
-           let headersData = headersString.data(using: .utf8),
-           let headers = try? JSONSerialization.jsonObject(with: headersData) as? [String: String] {
-            // Create asset with headers
-            let options = ["AVURLAssetHTTPHeaderFieldsKey": headers]
-            asset = AVURLAsset(url: url, options: options)
-        } else {
-            // Create asset without headers
-            asset = AVURLAsset(url: url)
-        }
-        
-        let item = AVPlayerItem(asset: asset)
-        
         // Store metadata as associated object
         var metadata: [String: Any] = [:]
         metadata["id"] = track["id"] as? String
@@ -465,6 +451,21 @@ public class BilisoundPlayerModule: Module {
         metadata["duration"] = track["duration"] as? Double
         metadata["headers"] = track["headers"] as? String
         metadata["extendedData"] = track["extendedData"] as? String
+        
+        var asset: AVURLAsset
+        if let headersString = metadata["headers"] as? String,
+           let headersData = headersString.data(using: .utf8),
+           let headers = try? JSONSerialization.jsonObject(with: headersData) as? [String: String] {
+            // Create asset with headers
+            let options = ["AVURLAssetHTTPHeaderFieldsKey": headers]
+            print(options)
+            asset = AVURLAsset(url: url, options: options)
+        } else {
+            // Create asset without headers
+            asset = AVURLAsset(url: url)
+        }
+        
+        let item = AVPlayerItem(asset: asset)
         
         objc_setAssociatedObject(item, &AssociatedKeys.metadata, metadata, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         

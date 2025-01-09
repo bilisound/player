@@ -3,9 +3,13 @@ import { Button, Text, TextInput, View } from "react-native";
 
 export interface AddCustomProps {
   onSubmit: (content: string) => void;
+  prefix?: string;
 }
 
-export function AddCustom({ onSubmit }: AddCustomProps) {
+export function AddCustom({
+  onSubmit,
+  prefix = "Add custom track:",
+}: AddCustomProps) {
   const [content, setContent] = useState("");
 
   function handleSubmit() {
@@ -15,7 +19,7 @@ export function AddCustom({ onSubmit }: AddCustomProps) {
 
   return (
     <View style={{ gap: 8 }}>
-      <Text>Add custom track:</Text>
+      <Text>{prefix}</Text>
       <View style={{ flexDirection: "row", gap: 8 }}>
         <TextInput
           style={{ flex: 1 }}

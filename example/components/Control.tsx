@@ -46,6 +46,21 @@ async function addBiliTrack(id: string, episode = 1) {
   }
 }
 
+async function addInternetTrack(uri: string) {
+  log.debug("添加曲目 URL: " + uri);
+  await BilisoundPlayer.addTracks([
+    {
+      uri,
+      id: uri,
+      title: uri,
+      headers: {
+        foo: "bar",
+        referer: "test-test",
+      },
+    },
+  ]);
+}
+
 function RealTimeProgress() {
   const progress = useProgress();
 
@@ -85,6 +100,10 @@ export function Control() {
         title="Console Log Current Track"
       />
       <AddCustom onSubmit={(e) => addBiliTrack(e.trim())} />
+      <AddCustom
+        prefix="Add URL:"
+        onSubmit={(e) => addInternetTrack(e.trim())}
+      />
       <View style={styles.row}>
         <Button
           onPress={async () => {
