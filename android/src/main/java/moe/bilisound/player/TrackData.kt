@@ -1,4 +1,5 @@
 package moe.bilisound.player
+import androidx.activity.result.contract.ActivityResultContracts
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -24,6 +25,10 @@ data class TrackData(
      * Duration
      */
     val duration: Long?,
+    /**
+     * Override mine type, in case when the server returns wrong Content-Type in HTTP response headers.
+     */
+    val mimeType: String?,
     /**
      * HTTP Headers, stored in key-value pair.
      *

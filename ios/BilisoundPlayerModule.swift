@@ -139,6 +139,9 @@ public class BilisoundPlayerModule: Module {
                         if let artworkUri = metadata["artworkUri"] as? String {
                             trackInfo["artworkUri"] = artworkUri
                         }
+                        if let mimeType = metadata["mimeType"] as? String {
+                            trackInfo["mimeType"] = mimeType
+                        }
                         if let headers = metadata["headers"] as? String {
                             trackInfo["headers"] = headers
                         }
@@ -533,14 +536,17 @@ public class BilisoundPlayerModule: Module {
         metadata["artist"] = track["artist"] as? String
         metadata["artworkUri"] = track["artworkUri"] as? String
         metadata["duration"] = track["duration"] as? Double
+        metadata["mimeType"] = track["mimeType"] as? String
         metadata["headers"] = track["headers"] as? String
         metadata["extendedData"] = track["extendedData"] as? String
         
         var asset: AVURLAsset
         var options: [String: Any] = [:]
-        // todo 允许用户配置
+        // Override MIME type if provided and on iOS 17+
         if #available(iOS 17.0, *) {
-            options[AVURLAssetOverrideMIMETypeKey] = "video/mp4"
+            if let mimeType = metadata["mimeType"] as? String {
+                options[AVURLAssetOverrideMIMETypeKey] = mimeType
+            }
         }
         if let headersString = metadata["headers"] as? String,
            let headersData = headersString.data(using: .utf8),

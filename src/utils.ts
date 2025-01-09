@@ -19,6 +19,7 @@ export function toTrackDataInternal(trackData: TrackData): TrackDataInternal {
     title: trackData.title ?? null,
     artist: trackData.artist ?? null,
     duration: trackData.duration ?? null,
+    mimeType: trackData.mimeType ?? null,
     headers: JSON.stringify(headers),
     extendedData: trackData.extendedData
       ? JSON.stringify(trackData.extendedData)
