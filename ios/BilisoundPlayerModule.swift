@@ -385,13 +385,138 @@ public class BilisoundPlayerModule: Module {
             }
         }
 
-        // todo deleteTrack
+        AsyncFunction("deleteTrack") { (index: Int, promise: Promise) in
+            do {
+                print("\(BilisoundPlayerModule.TAG): User attempting to delete track at index \(index)")
+                
+                // Validate index
+                guard index >= 0 && index < self.playerItems.count else {
+                    throw NSError(domain: "BilisoundPlayer", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid index"])
+                }
+                
+                // Remove the item
+                self.playerItems.remove(at: index)
+                
+                // If we're deleting the current track, handle it properly
+                if index == self.currentIndex {
+                    if self.playerItems.isEmpty {
+                        // If no tracks left, reset everything
+                        self.currentIndex = 0
+                        self.player?.replaceCurrentItem(with: nil)
+                    } else if index >= self.playerItems.count {
+                        // If we deleted the last track, move to the previous one
+                        self.currentIndex = self.playerItems.count - 1
+                        self.updatePlayerQueue()
+                    } else {
+                        // Keep the same index (it will now point to the next track)
+                        self.updatePlayerQueue()
+                    }
+                } else if index < self.currentIndex {
+                    // If we deleted a track before the current one, adjust the index
+                    self.currentIndex -= 1
+                    self.updatePlayerQueue()
+                } else {
+                    // For tracks after the current one, just update the queue
+                    self.updatePlayerQueue()
+                }
+                
+                self.firePlaylistChangeEvent()
+                promise.resolve()
+            } catch {
+                promise.reject("PLAYER_ERROR", "Failed to delete track: \(error.localizedDescription)")
+            }
+        }
 
-        // todo deleteTracks
+        AsyncFunction("deleteTracks") { (jsonContent: String, promise: Promise) in
+            do {
+                print("\(BilisoundPlayerModule.TAG): User attempting to delete multiple tracks")
+                guard let jsonData = jsonContent.data(using: .utf8),
+                      let indices = try JSONSerialization.jsonObject(with: jsonData) as? [Int] else {
+                    throw NSError(domain: "BilisoundPlayer", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid JSON format"])
+                }
+                
+                // Sort indices in descending order to avoid index shifting problems
+                let sortedIndices = indices.sorted(by: >)
+                
+                // Validate all indices first
+                for index in sortedIndices {
+                    guard index >= 0 && index < self.playerItems.count else {
+                        throw NSError(domain: "BilisoundPlayer", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid index: \(index)"])
+                    }
+                }
+                
+                // Keep track of whether we need to adjust currentIndex
+                var currentIndexAdjustment = 0
+                var deletedCurrentTrack = false
+                
+                // Remove items from highest index to lowest
+                for index in sortedIndices {
+                    self.playerItems.remove(at: index)
+                    
+                    if index == self.currentIndex {
+                        deletedCurrentTrack = true
+                    } else if index < self.currentIndex {
+                        currentIndexAdjustment += 1
+                    }
+                }
+                
+                // Handle current index adjustment
+                if deletedCurrentTrack {
+                    if self.playerItems.isEmpty {
+                        // If no tracks left, reset everything
+                        self.currentIndex = 0
+                        self.player?.replaceCurrentItem(with: nil)
+                    } else if self.currentIndex >= self.playerItems.count {
+                        // If we deleted the last track(s), move to the last available track
+                        self.currentIndex = self.playerItems.count - 1
+                        self.updatePlayerQueue()
+                    } else {
+                        // Keep the same index (it will now point to the next track)
+                        self.updatePlayerQueue()
+                    }
+                } else {
+                    // Adjust current index based on how many tracks were deleted before it
+                    self.currentIndex -= currentIndexAdjustment
+                    self.updatePlayerQueue()
+                }
+                
+                self.firePlaylistChangeEvent()
+                promise.resolve()
+            } catch {
+                promise.reject("PLAYER_ERROR", "Failed to delete tracks: \(error.localizedDescription)")
+            }
+        }
 
-        // todo clearQueue
+        AsyncFunction("clearQueue") { (promise: Promise) in
+            self.playerItems.removeAll()
+            self.currentIndex = 0
+            self.player?.replaceCurrentItem(with: nil)
+            self.firePlaylistChangeEvent()
+            promise.resolve()
+        }
 
-        // todo setQueue
+        AsyncFunction("setQueue") { (jsonContent: String, promise: Promise) in
+            do {
+                print("\(BilisoundPlayerModule.TAG): User attempting to set the queue")
+                guard let jsonData = jsonContent.data(using: .utf8),
+                      let tracksArray = try JSONSerialization.jsonObject(with: jsonData) as? [[String: Any]] else {
+                    throw NSError(domain: "BilisoundPlayer", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid JSON format"])
+                }
+                
+                // Create AVPlayerItems for each track
+                let newItems = try tracksArray.map { try self.createPlayerItem(from: $0) }
+                
+                // Replace the current queue with the new one
+                self.playerItems = newItems
+                self.currentIndex = 0
+                self.updatePlayerQueue()
+                self.firePlaylistChangeEvent()
+                
+                promise.resolve()
+            } catch {
+                promise.reject("PLAYER_ERROR", "Failed to set queue: \(error.localizedDescription)")
+            }
+        }
     }
     
     private func addTracksToPlayer(_ items: [AVPlayerItem]) {
