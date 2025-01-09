@@ -17,9 +17,16 @@ public class BilisoundPlayerModule: Module {
     private let STATE_ENDED = "STATE_ENDED"
 
     deinit {
+        // Remove observer when module is destroyed
         if let token = timeObserverToken {
             player?.removeTimeObserver(token)
         }
+        
+        // Remove playback state observer
+        if let observer = playbackStateObserver {
+            player?.removeObserver(observer, forKeyPath: #keyPath(AVPlayer.timeControlStatus))
+        }
+        playbackStateObserver = nil
     }
 
     // Define your module's methods
@@ -611,81 +618,62 @@ public class BilisoundPlayerModule: Module {
         self.firePlaylistChangeEvent()
     }
 
-    private class PlayerItemObserver: NSObject {
+    private class PlaybackStateObserver: NSObject {
         weak var module: BilisoundPlayerModule?
-
+        
         init(module: BilisoundPlayerModule) {
             self.module = module
             super.init()
         }
-
+        
         override func observeValue(
             forKeyPath keyPath: String?,
             of object: Any?,
             change: [NSKeyValueChangeKey: Any]?,
             context: UnsafeMutableRawPointer?
         ) {
-            guard let item = object as? AVPlayerItem else { return }
+            if keyPath == #keyPath(AVPlayer.timeControlStatus),
+                let player = object as? AVPlayer
+            {
+                var state = module?.STATE_IDLE ?? "STATE_IDLE"
 
-            if keyPath == #keyPath(AVPlayerItem.status) {
-                let status: AVPlayerItem.Status
-                if let statusNumber = change?[.newKey] as? NSNumber {
-                    status = AVPlayerItem.Status(rawValue: statusNumber.intValue) ?? .unknown
-                } else {
-                    status = .unknown
-                }
-
-                switch status {
-                case .failed:
-                    if let error = item.error as NSError? {
-                        var errorType = "ERROR_GENERIC"
-                        var message = error.localizedDescription
-
-                        // Check for format-related errors
-                        if error.domain == AVFoundationErrorDomain {
-                            switch error.code {
-                            case AVError.Code.fileFormatNotRecognized.rawValue,
-                                AVError.Code.contentIsNotAuthorized.rawValue,
-                                AVError.Code.decoderTemporarilyUnavailable.rawValue,
-                                AVError.Code.decoderNotFound.rawValue:
-                                errorType = "ERROR_UNSUPPORTED_FORMAT"
-                                message = "Unsupported audio format or codec"
-                            default:
-                                break
-                            }
-                        }
-
-                        print("捕获播放错误：\(message)，错误代码：\(error.code)，错误域：\(error.domain)")
-
-                        // Send error event to RN through the module
-                        module?.sendEvent(
-                            "onPlaybackError",
-                            [
-                                "type": errorType,
-                                "message": message,
-                            ])
+                switch player.timeControlStatus {
+                case .paused:
+                    if player.currentItem?.status == .readyToPlay {
+                        state = module?.STATE_READY ?? "STATE_READY"
+                    } else {
+                        state = module?.STATE_IDLE ?? "STATE_IDLE"
                     }
-                case .readyToPlay:
-                    // Item is ready to play
-                    break
-                case .unknown:
-                    // Unknown status
-                    break
+                case .waitingToPlayAtSpecifiedRate:
+                    state = module?.STATE_BUFFERING ?? "STATE_BUFFERING"
+                case .playing:
+                    state = module?.STATE_READY ?? "STATE_READY"
                 @unknown default:
-                    break
+                    state = module?.STATE_IDLE ?? "STATE_IDLE"
                 }
+
+                // Send playback state change event
+                module?.sendEvent("onPlaybackStateChange", [
+                    "state": state
+                ])
+
+                // Also send isPlaying state change
+                let isPlaying = player.timeControlStatus == .playing
+                module?.sendEvent("onIsPlayingChange", [
+                    "isPlaying": isPlaying
+                ])
             }
         }
     }
 
-    private var playerItemObserver: PlayerItemObserver?
+    private var playbackStateObserver: PlaybackStateObserver?
 
     private func setupPlayer() {
         // Initialize AVQueuePlayer
         player = AVQueuePlayer()
 
         // Initialize player item observer
-        playerItemObserver = PlayerItemObserver(module: self)
+        // playerItemObserver = PlayerItemObserver(module: self)
 
         // Set up audio session for background playback
         do {
@@ -768,14 +756,6 @@ public class BilisoundPlayerModule: Module {
         // Observe playback status changes
         NotificationCenter.default.addObserver(
             self,
-            selector: #selector(handlePlaybackEnd),
-            name: .AVPlayerItemDidPlayToEndTime,
-            object: nil
-        )
-
-        // Observe playback end
-        NotificationCenter.default.addObserver(
-            self,
             selector: #selector(playerItemDidReachEnd),
             name: .AVPlayerItemDidPlayToEndTime,
             object: nil
@@ -795,15 +775,15 @@ public class BilisoundPlayerModule: Module {
             name: .AVPlayerItemDidPlayToEndTime,
             object: nil
         )
-    }
 
-    @objc private func handleCurrentItemChange(notification: Notification) {
-        if let item = player?.currentItem,
-            let index = playerItems.firstIndex(of: item)
-        {
-            currentIndex = index
-            updateNowPlayingInfo()
-        }
+        // Setup playback state observer
+        playbackStateObserver = PlaybackStateObserver(module: self)
+        player?.addObserver(
+            playbackStateObserver!,
+            forKeyPath: #keyPath(AVPlayer.timeControlStatus),
+            options: [.old, .new],
+            context: nil
+        )
     }
 
     private func loadArtwork(urlString: String, completion: @escaping (MPMediaItemArtwork?) -> Void)
@@ -880,6 +860,23 @@ public class BilisoundPlayerModule: Module {
                     currentInfo[MPMediaItemPropertyArtwork] = artwork
                     MPNowPlayingInfoCenter.default().nowPlayingInfo = currentInfo
                 }
+            }
+        }
+    }
+
+    @objc private func handleCurrentItemChange(notification: Notification) {
+        if let item = player?.currentItem,
+            let index = playerItems.firstIndex(of: item)
+        {
+            currentIndex = index
+            updateNowPlayingInfo()
+            
+            // Send track change event
+            if let metadata = getTrackMetadata(from: item) {
+                sendEvent("onTrackChange", [
+                    "index": index,
+                    "track": metadata
+                ])
             }
         }
     }
@@ -969,9 +966,9 @@ public class BilisoundPlayerModule: Module {
         let item = AVPlayerItem(asset: asset)
 
         // Add KVO observer for item status
-        item.addObserver(
-            playerItemObserver!, forKeyPath: #keyPath(AVPlayerItem.status), options: [.new],
-            context: nil)
+        // item.addObserver(
+        //     playerItemObserver!, forKeyPath: #keyPath(AVPlayerItem.status), options: [.new],
+        //     context: nil)
 
         objc_setAssociatedObject(
             item, &AssociatedKeys.metadata, metadata, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
