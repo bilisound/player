@@ -221,7 +221,25 @@ public class BilisoundPlayerModule: Module {
             promise.resolve()
         }
 
-        // todo addTrack
+        AsyncFunction("addTrack") { (jsonContent: String, promise: Promise) in
+            do {
+                print("\(BilisoundPlayerModule.TAG): User attempting to add a track")
+                guard let jsonData = jsonContent.data(using: .utf8),
+                      let trackDict = try JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else {
+                    throw NSError(domain: "BilisoundPlayer", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid JSON format"])
+                }
+                
+                // Create AVPlayerItem for the track
+                let newItem = try self.createPlayerItem(from: trackDict)
+                
+                // Add the item using our helper method
+                self.addTracksToPlayer([newItem])
+                
+                promise.resolve()
+            } catch {
+                promise.reject("PLAYER_ERROR", "Failed to add track: \(error.localizedDescription)")
+            }
+        }
 
         // todo addTrackAt
 
@@ -236,18 +254,8 @@ public class BilisoundPlayerModule: Module {
                 // Create AVPlayerItems for each track
                 let newItems = try tracksArray.map { try self.createPlayerItem(from: $0) }
                 
-                // Add items to our tracking array
-                self.playerItems.append(contentsOf: newItems)
-                
-                // If player is not playing anything, start from the beginning
-                if self.player?.currentItem == nil {
-                    print("播放器为空，从头开始播放")
-                    self.currentIndex = 0
-                    self.updatePlayerQueue()
-                }
-                
-                // Fire playlist change event
-                self.firePlaylistChangeEvent()
+                // Add items using our helper method
+                self.addTracksToPlayer(newItems)
                 
                 promise.resolve()
             } catch {
@@ -315,6 +323,21 @@ public class BilisoundPlayerModule: Module {
         // todo setQueue
     }
     
+    private func addTracksToPlayer(_ items: [AVPlayerItem]) {
+        // Add items to our tracking array
+        self.playerItems.append(contentsOf: items)
+        
+        // If player is not playing anything, start from the beginning
+        if self.player?.currentItem == nil {
+            print("播放器为空，从头开始播放")
+            self.currentIndex = 0
+            self.updatePlayerQueue()
+        }
+        
+        // Fire playlist change event
+        self.firePlaylistChangeEvent()
+    }
+
     private class PlayerItemObserver: NSObject {
         weak var module: BilisoundPlayerModule?
         
