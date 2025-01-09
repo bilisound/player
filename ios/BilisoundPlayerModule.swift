@@ -10,6 +10,12 @@ public class BilisoundPlayerModule: Module {
     private var timeObserverToken: Any?
     private var artworkCache: [String: MPMediaItemArtwork] = [:]
     
+    // Playback states
+    private let STATE_IDLE = "STATE_IDLE"
+    private let STATE_BUFFERING = "STATE_BUFFERING"
+    private let STATE_READY = "STATE_READY"
+    private let STATE_ENDED = "STATE_ENDED"
+    
     deinit {
         if let token = timeObserverToken {
             player?.removeTimeObserver(token)
@@ -122,8 +128,15 @@ public class BilisoundPlayerModule: Module {
             }
         }
 
-        // todo getIsPlaying
-
+        AsyncFunction("getIsPlaying") { (promise: Promise) in
+            guard let player = self.player else {
+                promise.resolve(false)
+                return
+            }
+            
+            promise.resolve(player.timeControlStatus == .playing)
+        }
+        
         AsyncFunction("getCurrentTrack") { (promise: Promise) in
             guard let player = self.player,
                   let currentItem = player.currentItem,
@@ -142,9 +155,55 @@ public class BilisoundPlayerModule: Module {
             promise.resolve(self.currentIndex)
         }
 
-        // todo getPlaybackState
+        AsyncFunction("getPlaybackState") { (promise: Promise) in
+            guard let player = self.player,
+                  let currentItem = player.currentItem else {
+                promise.resolve(self.STATE_IDLE)
+                return
+            }
+            
+            switch (currentItem.status, player.timeControlStatus) {
+            case (.failed, _):
+                promise.resolve(self.STATE_IDLE)
+            case (_, .waitingToPlayAtSpecifiedRate):
+                promise.resolve(self.STATE_BUFFERING)
+            case (.readyToPlay, _):
+                if currentItem.duration.seconds == player.currentTime().seconds && currentItem.duration.seconds > 0 {
+                    promise.resolve(self.STATE_ENDED)
+                } else {
+                    promise.resolve(self.STATE_READY)
+                }
+            default:
+                promise.resolve(self.STATE_IDLE)
+            }
+        }
 
-        // todo getProgress
+        AsyncFunction("getProgress") { (promise: Promise) in
+            guard let player = self.player,
+                  let currentItem = player.currentItem else {
+                promise.resolve([
+                    "duration": 0.0,
+                    "position": 0.0,
+                    "buffered": 0.0
+                ])
+                return
+            }
+            
+            let duration = currentItem.duration.seconds
+            let position = player.currentTime().seconds
+            let timeRanges = currentItem.loadedTimeRanges
+            var buffered = 0.0
+            
+            if let timeRange = timeRanges.first?.timeRangeValue {
+                buffered = timeRange.start.seconds + timeRange.duration.seconds
+            }
+            
+            promise.resolve([
+                "duration": duration.isNaN ? 0.0 : duration,
+                "position": position.isNaN ? 0.0 : position,
+                "buffered": buffered.isNaN ? 0.0 : buffered
+            ])
+        }
 
         // todo setSpeed
 
@@ -183,7 +242,7 @@ public class BilisoundPlayerModule: Module {
         }
 
         // todo addTracksAt
-        
+
         AsyncFunction("getTracks") { (promise: Promise) in
             do {
                 guard self.player != nil else {
