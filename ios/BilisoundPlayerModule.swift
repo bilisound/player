@@ -7,7 +7,6 @@ public class BilisoundPlayerModule: Module {
     private var player: AVQueuePlayer?
     private var playerItems: [AVPlayerItem] = []
     private var currentIndex: Int = 0
-    private var headersBank: [String: [String: String]] = [:]
     private var timeObserverToken: Any?
     private var artworkCache: [String: MPMediaItemArtwork] = [:]
     
@@ -41,21 +40,7 @@ public class BilisoundPlayerModule: Module {
             print("\(BilisoundPlayerModule.TAG): Destroying player module")
             self.cleanupPlayer()
         }
-        
-        // Headers management functions
-        Function("setHeadersOnBank") { (key: String, headers: [String: String]) in
-            self.headersBank[key] = headers
-        }
-        
-        Function("deleteHeadersOnBank") { (key: String) in
-            self.headersBank.removeValue(forKey: key)
-        }
-        
-        Function("clearHeadersOnBank") {
-            self.headersBank.removeAll()
-        }
-        
-        // Player control functions
+
         AsyncFunction("play") { (promise: Promise) in
             self.player?.play()
             promise.resolve()
@@ -175,8 +160,7 @@ public class BilisoundPlayerModule: Module {
                 promise.reject("PLAYER_ERROR", "Failed to get track list (\(error.localizedDescription))")
             }
         }
-        
-        // Add tracks functions
+
         AsyncFunction("addTracks") { (jsonContent: String, promise: Promise) in
             do {
                 print("\(BilisoundPlayerModule.TAG): User attempting to add multiple tracks")
