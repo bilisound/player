@@ -236,6 +236,22 @@ public class BilisoundPlayerModule: Module {
         
         // Add observers for player state changes
         setupPlayerObservers()
+        
+        // Add observer for playback errors
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handlePlayerItemError),
+            name: .AVPlayerItemFailedToPlayToEndTime,
+            object: nil
+        )
+        
+        // Add observer for item status changes to catch loading errors
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handlePlayerItemStatusChange),
+            name: .AVPlayerItemNewErrorLogEntry,
+            object: nil
+        )
     }
     
     private func setupRemoteTransportControls() {
@@ -569,6 +585,53 @@ public class BilisoundPlayerModule: Module {
         player?.seek(to: .zero)
         
         return true
+    }
+    
+    @objc private func handlePlayerItemError(notification: Notification) {
+        guard let playerItem = notification.object as? AVPlayerItem,
+              let error = playerItem.error as NSError? else {
+            return
+        }
+        
+        var errorType = "ERROR_GENERIC"
+        var message = error.localizedDescription
+        
+        // Check for network-related errors
+        if error.domain == NSURLErrorDomain {
+            switch error.code {
+            case NSURLErrorNotConnectedToInternet,
+                 NSURLErrorNetworkConnectionLost,
+                 NSURLErrorTimedOut:
+                errorType = "ERROR_NETWORK_FAILURE"
+            case NSURLErrorBadServerResponse,
+                 NSURLErrorBadURL:
+                errorType = "ERROR_BAD_HTTP_STATUS_CODE"
+            default:
+                errorType = "ERROR_NETWORK_FAILURE"
+            }
+        }
+
+        print("捕获播放错误：\(message)")
+        
+        // Send error event to RN
+        sendEvent("onPlaybackError", [
+            "type": errorType,
+            "message": message
+        ])
+    }
+    
+    @objc private func handlePlayerItemStatusChange(notification: Notification) {
+        guard let playerItem = notification.object as? AVPlayerItem,
+              let errorLog = playerItem.errorLog(),
+              let lastEvent = errorLog.events.last else {
+            return
+        }
+        
+        // Send error event to RN
+        sendEvent("onPlaybackError", [
+            "type": "ERROR_GENERIC",
+            "message": lastEvent.errorComment ?? "Unknown playback error"
+        ])
     }
 }
 
