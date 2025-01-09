@@ -206,6 +206,29 @@ public class BilisoundPlayerModule: Module {
                 promise.reject("PLAYER_ERROR", "Failed to add tracks: \(error.localizedDescription)")
             }
         }
+        
+        AsyncFunction("jump") { (to: Int, promise: Promise) in
+            do {
+                guard let player = self.player else {
+                    throw NSError(domain: "BilisoundPlayer", code: -1, userInfo: [NSLocalizedDescriptionKey: "Player is not initialized"])
+                }
+                
+                // Check if the target index is valid
+                guard to >= 0 && to < self.playerItems.count else {
+                    throw NSError(domain: "BilisoundPlayer", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid track index"])
+                }
+                
+                // Update current index
+                self.currentIndex = to
+                
+                // Update player queue starting from the target index
+                self.updatePlayerQueue()
+                self.player?.seek(to: .zero)
+                promise.resolve()
+            } catch {
+                promise.reject("PLAYER_ERROR", "Failed to jump to track: \(error.localizedDescription)")
+            }
+        }
     }
     
     private func setupPlayer() {
