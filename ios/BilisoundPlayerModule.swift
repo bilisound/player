@@ -1143,6 +1143,7 @@ public class BilisoundPlayerModule: Module {
 
         // Reset to beginning of current track
         player?.seek(to: .zero)
+        player?.pause()
 
         return true
     }
