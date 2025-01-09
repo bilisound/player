@@ -615,12 +615,6 @@ class BilisoundPlayerModule : Module() {
             }
         }
 
-        AsyncFunction("testAction1") { promise: Promise ->
-            mainHandler.post {
-                promise.resolve()
-            }
-        }
-
         AsyncFunction("addDownload") { id: String, uri: String, metadata: String, promise: Promise ->
             mainHandler.post {
                 try {

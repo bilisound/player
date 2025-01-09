@@ -99,6 +99,31 @@ public class BilisoundPlayerModule: Module {
             }
         }
 
+        AsyncFunction("jump") { (to: Int, promise: Promise) in
+            do {
+                guard self.player != nil else {
+                    throw NSError(domain: "BilisoundPlayer", code: -1, userInfo: [NSLocalizedDescriptionKey: "Player is not initialized"])
+                }
+                
+                // Check if the target index is valid
+                guard to >= 0 && to < self.playerItems.count else {
+                    throw NSError(domain: "BilisoundPlayer", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid track index"])
+                }
+                
+                // Update current index
+                self.currentIndex = to
+                
+                // Update player queue starting from the target index
+                self.updatePlayerQueue()
+                self.player?.seek(to: .zero)
+                promise.resolve()
+            } catch {
+                promise.reject("PLAYER_ERROR", "Failed to jump to track: \(error.localizedDescription)")
+            }
+        }
+
+        // todo getIsPlaying
+
         AsyncFunction("getCurrentTrack") { (promise: Promise) in
             guard let player = self.player,
                   let currentItem = player.currentItem,
@@ -116,6 +141,48 @@ public class BilisoundPlayerModule: Module {
             }
             promise.resolve(self.currentIndex)
         }
+
+        // todo getPlaybackState
+
+        // todo getProgress
+
+        // todo setSpeed
+
+        // todo addTrack
+
+        // todo addTrackAt
+
+        AsyncFunction("addTracks") { (jsonContent: String, promise: Promise) in
+            do {
+                print("\(BilisoundPlayerModule.TAG): User attempting to add multiple tracks")
+                guard let jsonData = jsonContent.data(using: .utf8),
+                      let tracksArray = try JSONSerialization.jsonObject(with: jsonData) as? [[String: Any]] else {
+                    throw NSError(domain: "BilisoundPlayer", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid JSON format"])
+                }
+                
+                // Create AVPlayerItems for each track
+                let newItems = try tracksArray.map { try self.createPlayerItem(from: $0) }
+                
+                // Add items to our tracking array
+                self.playerItems.append(contentsOf: newItems)
+                
+                // If player is not playing anything, start from the beginning
+                if self.player?.currentItem == nil {
+                    print("播放器为空，从头开始播放")
+                    self.currentIndex = 0
+                    self.updatePlayerQueue()
+                }
+                
+                // Fire playlist change event
+                self.firePlaylistChangeEvent()
+                
+                promise.resolve()
+            } catch {
+                promise.reject("PLAYER_ERROR", "Failed to add tracks: \(error.localizedDescription)")
+            }
+        }
+
+        // todo addTracksAt
         
         AsyncFunction("getTracks") { (promise: Promise) in
             do {
@@ -164,58 +231,15 @@ public class BilisoundPlayerModule: Module {
             }
         }
 
-        AsyncFunction("addTracks") { (jsonContent: String, promise: Promise) in
-            do {
-                print("\(BilisoundPlayerModule.TAG): User attempting to add multiple tracks")
-                guard let jsonData = jsonContent.data(using: .utf8),
-                      let tracksArray = try JSONSerialization.jsonObject(with: jsonData) as? [[String: Any]] else {
-                    throw NSError(domain: "BilisoundPlayer", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid JSON format"])
-                }
-                
-                // Create AVPlayerItems for each track
-                let newItems = try tracksArray.map { try self.createPlayerItem(from: $0) }
-                
-                // Add items to our tracking array
-                self.playerItems.append(contentsOf: newItems)
-                
-                // If player is not playing anything, start from the beginning
-                if self.player?.currentItem == nil {
-                    print("播放器为空，从头开始播放")
-                    self.currentIndex = 0
-                    self.updatePlayerQueue()
-                }
-                
-                // Fire playlist change event
-                self.firePlaylistChangeEvent()
-                
-                promise.resolve()
-            } catch {
-                promise.reject("PLAYER_ERROR", "Failed to add tracks: \(error.localizedDescription)")
-            }
-        }
-        
-        AsyncFunction("jump") { (to: Int, promise: Promise) in
-            do {
-                guard self.player != nil else {
-                    throw NSError(domain: "BilisoundPlayer", code: -1, userInfo: [NSLocalizedDescriptionKey: "Player is not initialized"])
-                }
-                
-                // Check if the target index is valid
-                guard to >= 0 && to < self.playerItems.count else {
-                    throw NSError(domain: "BilisoundPlayer", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid track index"])
-                }
-                
-                // Update current index
-                self.currentIndex = to
-                
-                // Update player queue starting from the target index
-                self.updatePlayerQueue()
-                self.player?.seek(to: .zero)
-                promise.resolve()
-            } catch {
-                promise.reject("PLAYER_ERROR", "Failed to jump to track: \(error.localizedDescription)")
-            }
-        }
+        // todo replaceTrack
+
+        // todo deleteTrack
+
+        // todo deleteTracks
+
+        // todo clearQueue
+
+        // todo setQueue
     }
     
     private class PlayerItemObserver: NSObject {
