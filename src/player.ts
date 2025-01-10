@@ -239,10 +239,14 @@ export async function clearQueue() {
 /**
  * 用一个新的队列替换当前队列
  * @param trackDatas
+ * @param beginIndex
  */
-export function setQueue(trackDatas: TrackData[]): Promise<void> {
+export function setQueue(
+  trackDatas: TrackData[],
+  beginIndex = 0,
+): Promise<void> {
   if (Platform.OS === "web") {
-    return BilisoundPlayerModule.setQueue(trackDatas);
+    return BilisoundPlayerModule.setQueue(trackDatas, beginIndex);
   }
 
   const processedData: TrackDataInternal[] = [];
@@ -250,7 +254,10 @@ export function setQueue(trackDatas: TrackData[]): Promise<void> {
     const trackData = trackDatas[i];
     processedData.push(toTrackDataInternal(trackData));
   }
-  return BilisoundPlayerModule.setQueue(JSON.stringify(processedData));
+  return BilisoundPlayerModule.setQueue(
+    JSON.stringify(processedData),
+    beginIndex,
+  );
 }
 
 /**

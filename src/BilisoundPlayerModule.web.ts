@@ -356,9 +356,10 @@ class BilisoundPlayerModuleWeb
     this.emitQueueChange();
   }
 
-  async setQueue(trackDatasJson: TrackData[]) {
+  async setQueue(trackDatasJson: TrackData[], beginIndex: number) {
     this.clear();
     await this.addTracks(trackDatasJson);
+    await this.jump(beginIndex);
   }
 
   async addDownload(id: string, uri: string, metadataJson: string) {}
