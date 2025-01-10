@@ -590,7 +590,7 @@ class BilisoundPlayerModule : Module() {
             }
         }
 
-        AsyncFunction("setQueue") { jsonContent: String, promise: Promise ->
+        AsyncFunction("setQueue") { jsonContent: String, beginIndex: Int, promise: Promise ->
             mainHandler.post {
                 try {
                     Log.d(TAG, "用户尝试替换整个播放队列。接收内容：$jsonContent")
@@ -607,6 +607,7 @@ class BilisoundPlayerModule : Module() {
                     val controller = getController()
                     controller.clearMediaItems()
                     controller.addMediaItems(0, mediaItems)
+                    controller.seekTo(beginIndex, 0)
                     promise.resolve()
                     firePlaylistChangeEvent()
                 } catch (e: Exception) {

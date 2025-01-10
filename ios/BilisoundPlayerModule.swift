@@ -582,7 +582,7 @@ public class BilisoundPlayerModule: Module {
             promise.resolve()
         }
 
-        AsyncFunction("setQueue") { (jsonContent: String, promise: Promise) in
+        AsyncFunction("setQueue") { (jsonContent: String, beginIndex: Int, promise: Promise) in
             do {
                 print("\(BilisoundPlayerModule.TAG): User attempting to set the queue")
                 guard let jsonData = jsonContent.data(using: .utf8),
@@ -599,7 +599,7 @@ public class BilisoundPlayerModule: Module {
 
                 // Replace the current queue with the new one
                 self.playerItems = newItems
-                self.currentIndex = 0
+                self.currentIndex = beginIndex
                 self.updatePlayerQueue()
                 self.firePlaylistChangeEvent()
 
