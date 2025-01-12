@@ -1083,20 +1083,6 @@ public class BilisoundPlayerModule: Module {
         for item in playerItems[currentIndex...] {
             player.insert(item, after: player.items().last)
         }
-
-        // Start playing if not already
-        if player.timeControlStatus != .playing {
-            player.play()
-        }
-
-        print("当前播放队列：")
-        player.items().enumerated().forEach { index, avPlayerItem in
-            if let metadata = getTrackMetadata(from: avPlayerItem),
-                let title = metadata["title"] as? String
-            {
-                print("[\(index)] \(title)")
-            }
-        }
     }
 
     private func skipToPrevious() -> Bool {
