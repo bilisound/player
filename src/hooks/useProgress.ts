@@ -34,7 +34,8 @@ const loop = async () => {
     hasLooping = false;
     return;
   }
-  return requestAnimationFrame(loop);
+  // return requestAnimationFrame(loop);
+  return setTimeout(loop, 50);
 };
 
 const subscribe = (listener: () => void) => {
