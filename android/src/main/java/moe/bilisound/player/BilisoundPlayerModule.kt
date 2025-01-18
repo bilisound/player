@@ -168,7 +168,8 @@ class BilisoundPlayerModule : Module() {
             EVENT_QUEUE_CHANGE,
             EVENT_TRACK_CHANGE,
             EVENT_IS_PLAYING_CHANGE,
-            EVENT_DOWNLOAD_UPDATE
+            EVENT_DOWNLOAD_UPDATE,
+            EVENT_LOOP_MODE_CHANGE,
         )
 
         OnCreate {
@@ -642,6 +643,9 @@ class BilisoundPlayerModule : Module() {
                         else -> Player.REPEAT_MODE_OFF
                     }
                     getController().repeatMode = repeatMode
+                    this@BilisoundPlayerModule.sendEvent(EVENT_LOOP_MODE_CHANGE, bundleOf(
+                        "mode" to repeatMode,
+                    ))
                     promise.resolve(null)
                 } catch (e: Exception) {
                     promise.reject("SET_REPEAT_MODE_ERROR", "无法设置循环模式（${e.message}）", e)

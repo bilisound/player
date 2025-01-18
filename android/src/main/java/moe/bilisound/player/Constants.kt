@@ -42,9 +42,14 @@ const val EVENT_PLAYING_PROGRESS_CHANGE = "onPlayingProgressChange"
 const val EVENT_DOWNLOAD_UPDATE = "onDownloadUpdate"
 
 /**
- * 播放状态恢复
+ * 播放状态恢复（未使用）
  */
 const val EVENT_PLAYBACK_RESUME = "onPlaybackResume"
+
+/**
+ * 循环状态变更
+ */
+const val EVENT_LOOP_MODE_CHANGE = "onLoopModeChange"
 
 // ============================================================================
 // 播放状态

@@ -4,7 +4,6 @@ import { AppRegistry, Platform } from "react-native";
 import { BilisoundPlayerModule } from "./BilisoundPlayerModule";
 import {
   BackgroundEventListener,
-  BackgroundEventParamUnconfirmed,
   EventList,
 } from "./types";
 
@@ -32,13 +31,7 @@ export function registerBackgroundEventListener(
     return;
   }
 
-  BilisoundPlayerModule.removeAllListeners("onPlaybackStateChange");
-  BilisoundPlayerModule.removeAllListeners("onPlaybackError");
-  BilisoundPlayerModule.removeAllListeners("onQueueChange");
-  BilisoundPlayerModule.removeAllListeners("onTrackChange");
-  BilisoundPlayerModule.removeAllListeners("onIsPlayingChange");
-  BilisoundPlayerModule.removeAllListeners("onPlayingProgressChange");
-  BilisoundPlayerModule.removeAllListeners("onDownloadUpdate");
+  // todo iOS 经过多次 HMR 后会出现大量事件重复监听的情况（仅限开发模式）
 
   addListener("onPlaybackStateChange", (data) =>
     handler({
