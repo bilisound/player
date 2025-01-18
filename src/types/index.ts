@@ -95,6 +95,17 @@ export enum DownloadState {
   STATE_RESTARTING = 7,
 }
 
+export enum RepeatMode {
+  /** No repeat */
+  OFF = 0,
+
+  /** Repeat current track */
+  ONE = 1,
+
+  /** Repeat all tracks */
+  ALL = 2,
+}
+
 /**
  * 下载项目
  */

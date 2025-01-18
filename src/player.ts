@@ -7,6 +7,7 @@ import {
   DownloadState,
   PlaybackProgress,
   PlaybackState,
+  RepeatMode,
   TrackData,
   TrackDataInternal,
 } from "./types";
@@ -130,7 +131,7 @@ export function setSpeed(speed: number, retainPitch = true): Promise<void> {
  * - 1: 单曲循环
  * - 2: 列表循环
  */
-export function getRepeatMode(): Promise<number> {
+export function getRepeatMode(): Promise<RepeatMode> {
   return BilisoundPlayerModule.getRepeatMode();
 }
 
@@ -141,7 +142,7 @@ export function getRepeatMode(): Promise<number> {
  * - 1: 单曲循环
  * - 2: 列表循环
  */
-export function setRepeatMode(mode: number): Promise<void> {
+export function setRepeatMode(mode: RepeatMode): Promise<void> {
   return BilisoundPlayerModule.setRepeatMode(mode);
 }
 

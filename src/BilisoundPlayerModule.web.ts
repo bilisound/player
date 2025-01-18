@@ -7,6 +7,7 @@ import {
   PlaybackState,
   TrackData,
   TrackDataInternal,
+  RepeatMode,
 } from "./types";
 import { BilisoundPlayerModuleInterface } from "./types/module";
 import { deleteItems } from "./utils";
@@ -33,14 +34,6 @@ class BilisoundPlayerModuleWeb
    */
   private index = -1;
   /**
-   * 播放进度
-   */
-  private audioProgress: PlaybackProgress = {
-    duration: 0,
-    buffered: 0,
-    position: 0,
-  };
-  /**
    * 播放速度设置
    * @private
    */
@@ -49,6 +42,7 @@ class BilisoundPlayerModuleWeb
     retainPitch: true,
   };
   private playbackState: PlaybackState = "STATE_IDLE";
+  private repeatMode: RepeatMode = RepeatMode.OFF;
 
   constructor() {
     super();
@@ -67,16 +61,36 @@ class BilisoundPlayerModuleWeb
       });
     });
     el.addEventListener("ended", async () => {
-      if (this.index >= this.trackData.length - 1) {
-        // 没有可以继续播放的内容了！
-        this.playbackState = "STATE_ENDED";
-        this.emit("onPlaybackStateChange", {
-          type: "STATE_ENDED",
-        });
-      } else {
-        // 播放下一首
-        await this.next();
-        await this.play();
+      switch (this.repeatMode) {
+        case RepeatMode.ONE: {
+          await this.jump(this.index);
+          await this.play();
+          break;
+        }
+        case RepeatMode.ALL: {
+          if (this.index >= this.trackData.length - 1) {
+            await this.jump(0);
+          } else {
+            await this.next();
+          }
+          await this.play();
+          break;
+        }
+        case RepeatMode.OFF:
+        default: {
+          if (this.index >= this.trackData.length - 1) {
+            // 没有可以继续播放的内容了！
+            this.playbackState = "STATE_ENDED";
+            this.emit("onPlaybackStateChange", {
+              type: "STATE_ENDED",
+            });
+          } else {
+            // 播放下一首
+            await this.next();
+            await this.play();
+          }
+          break;
+        }
       }
     });
     el.addEventListener("play", () => {
@@ -381,6 +395,15 @@ class BilisoundPlayerModuleWeb
   async resumeAllDownloads() {}
 
   async removeDownload(id: string) {}
+
+  async getRepeatMode(): Promise<number> {
+    return this.repeatMode;
+  }
+
+  async setRepeatMode(mode: number): Promise<void> {
+    this.repeatMode = mode;
+    this.emit("onRepeatModeChange", { repeatMode: mode });
+  }
 }
 
 export const BilisoundPlayerModule = registerWebModule(

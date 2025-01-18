@@ -2,6 +2,7 @@ import {
   DownloadState,
   PlaybackProgress,
   PlaybackState,
+  RepeatMode,
   TrackData,
   TrackDataInternal,
 } from "./index";
@@ -22,8 +23,8 @@ export interface BilisoundPlayerModuleInterface {
   getCurrentTrackWeb(): Promise<TrackData | null>;
   getCurrentTrackIndex(): Promise<number>;
   setSpeed(speed: number, retainPitch: boolean): Promise<void>;
-  getRepeatMode(): Promise<number>;
-  setRepeatMode(mode: number): Promise<void>;
+  getRepeatMode(): Promise<RepeatMode>;
+  setRepeatMode(mode: RepeatMode): Promise<void>;
 
   // 播放队列相关
   addTrack(trackDataJson: string | TrackData): Promise<void>;
