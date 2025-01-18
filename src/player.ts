@@ -124,6 +124,28 @@ export function setSpeed(speed: number, retainPitch = true): Promise<void> {
 }
 
 /**
+ * 获取循环模式
+ * @returns {Promise<number>} 循环模式
+ * - 0: 不循环
+ * - 1: 单曲循环
+ * - 2: 列表循环
+ */
+export function getRepeatMode(): Promise<number> {
+  return BilisoundPlayerModule.getRepeatMode();
+}
+
+/**
+ * 设置循环模式
+ * @param mode 循环模式
+ * - 0: 不循环
+ * - 1: 单曲循环
+ * - 2: 列表循环
+ */
+export function setRepeatMode(mode: number): Promise<void> {
+  return BilisoundPlayerModule.setRepeatMode(mode);
+}
+
+/**
  * 向播放队列添加单首曲目
  * @param trackData 曲目信息
  * @param index 插入位置。不指定则插入到末尾

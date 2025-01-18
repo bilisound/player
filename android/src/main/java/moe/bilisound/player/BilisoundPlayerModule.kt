@@ -616,6 +616,39 @@ class BilisoundPlayerModule : Module() {
             }
         }
 
+        AsyncFunction("getRepeatMode") { promise: Promise ->
+            mainHandler.post {
+                try {
+                    val repeatMode = when (getController().repeatMode) {
+                        Player.REPEAT_MODE_OFF -> 0
+                        Player.REPEAT_MODE_ONE -> 1
+                        Player.REPEAT_MODE_ALL -> 2
+                        else -> 0
+                    }
+                    promise.resolve(repeatMode)
+                } catch (e: Exception) {
+                    promise.reject("GET_REPEAT_MODE_ERROR", "无法获取循环模式（${e.message}）", e)
+                }
+            }
+        }
+
+        AsyncFunction("setRepeatMode") { mode: Int, promise: Promise ->
+            mainHandler.post {
+                try {
+                    val repeatMode = when (mode) {
+                        0 -> Player.REPEAT_MODE_OFF
+                        1 -> Player.REPEAT_MODE_ONE
+                        2 -> Player.REPEAT_MODE_ALL
+                        else -> Player.REPEAT_MODE_OFF
+                    }
+                    getController().repeatMode = repeatMode
+                    promise.resolve(null)
+                } catch (e: Exception) {
+                    promise.reject("SET_REPEAT_MODE_ERROR", "无法设置循环模式（${e.message}）", e)
+                }
+            }
+        }
+
         AsyncFunction("addDownload") { id: String, uri: String, metadata: String, promise: Promise ->
             mainHandler.post {
                 try {

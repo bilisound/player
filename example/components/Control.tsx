@@ -156,6 +156,20 @@ export function Control() {
       </View>
       <View style={styles.row}>
         <Button
+          title="不循环"
+          onPress={() => BilisoundPlayer.setRepeatMode(0)}
+        />
+        <Button
+          title="单曲循环"
+          onPress={() => BilisoundPlayer.setRepeatMode(1)}
+        />
+        <Button
+          title="列表循环"
+          onPress={() => BilisoundPlayer.setRepeatMode(2)}
+        />
+      </View>
+      <View style={styles.row}>
+        <Button
           onPress={() => BilisoundPlayer.setSpeed(50 / 60, false)}
           title="50 / 60"
         />
