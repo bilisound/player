@@ -772,6 +772,9 @@ public class BilisoundPlayerModule: Module {
     private func setupPlayer() {
         // Initialize AVQueuePlayer
         player = AVQueuePlayer()
+        
+        // 设置播放器在每首歌结束时停止，而不是自动播放下一首
+        player?.actionAtItemEnd = .pause
 
         // Initialize observers
         mediaItemTransitionObserver = MediaItemTransitionObserver(module: self)
@@ -1031,6 +1034,7 @@ public class BilisoundPlayerModule: Module {
             if (self.repeatMode == 1) {
                 print("执行单曲循环")
                 try jumpToTrack(at: currentIndex)
+                player?.play()
                 return
             }
 
@@ -1039,6 +1043,7 @@ public class BilisoundPlayerModule: Module {
                 if (self.repeatMode == 2) {
                     print("已到达播放列表末尾，跳转回第一首")
                     try jumpToTrack(at: 0)
+                    player?.play()
                 } else {
                     print("已到达播放列表末尾，清理播放状态")
                     restoreCurrent()
@@ -1046,7 +1051,9 @@ public class BilisoundPlayerModule: Module {
             } else {
                 // If not the last item, advance to next item
                 print("继续播放下一首")
-                skipToNext()
+                currentIndex += 1
+                try jumpToTrack(at: currentIndex)
+                player?.play()
             }
         } catch {
             print("播放跳转失败：\(error.localizedDescription)")
@@ -1229,43 +1236,48 @@ public class BilisoundPlayerModule: Module {
         }
     }
 
+    private func skipToNext() -> Bool {
+        guard currentIndex < playerItems.count - 1 else {
+            return false
+        }
+
+        do {
+            currentIndex += 1
+            try jumpToTrack(at: currentIndex)
+            player?.play()
+            return true
+        } catch {
+            print("跳转到下一曲失败：\(error.localizedDescription)")
+            return false
+        }
+    }
+
     private func skipToPrevious() -> Bool {
         guard let player = player,
             let currentItem = player.currentItem
-        else { return false }
+        else {
+            return false
+        }
 
-        let currentTime = CMTimeGetSeconds(currentItem.currentTime())
-
-        if currentTime >= 3.0 {
-            player.seek(to: .zero)
+        // If we're more than 3 seconds into the current track,
+        // or this is the first track, just seek to start
+        if currentIndex == 0 || currentItem.currentTime().seconds > 3 {
+            currentItem.seek(to: .zero) { _ in
+                player.play()
+            }
             return true
         }
 
-        // Otherwise, go to previous track if available
-        guard currentIndex > 0 else {
-            print("没有可供继续切换的歌曲")
-            player.seek(to: .zero)
+        // Otherwise go to previous track
+        do {
+            currentIndex -= 1
+            try jumpToTrack(at: currentIndex)
+            player.play()
             return true
-        }  // Return true because we still reset to beginning
-
-        print("正在切换到上一首歌曲")
-        currentIndex -= 1
-        updatePlayerQueue()
-
-        // Reset to beginning of current track
-        player.seek(to: .zero)
-        return true
-    }
-
-    private func skipToNext() -> Bool {
-        guard currentIndex < playerItems.count - 1 else { return false }
-        currentIndex += 1
-        updatePlayerQueue()
-
-        // Reset to beginning of current track
-        player?.seek(to: .zero)
-
-        return true
+        } catch {
+            print("跳转到上一曲失败：\(error.localizedDescription)")
+            return false
+        }
     }
 
     private func restoreCurrent() -> Bool {
