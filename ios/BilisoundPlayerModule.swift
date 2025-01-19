@@ -804,14 +804,6 @@ public class BilisoundPlayerModule: Module {
         // Add observers for player state changes
         setupPlayerObservers()
 
-        // Add observer for track completion
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(handlePlayerItemDidPlayToEndTime),
-            name: .AVPlayerItemDidPlayToEndTime,
-            object: nil
-        )
-
         // Add observer for playback errors
         NotificationCenter.default.addObserver(
             self,
@@ -1028,7 +1020,7 @@ public class BilisoundPlayerModule: Module {
     }
 
     @objc private func playerItemDidReachEnd(notification: Notification) {
-        print("播放结束，当前索引：\(currentIndex)，总数：\(playerItems.count)")
+        print("播放结束，当前索引：\(currentIndex)，总数：\(playerItems.count)，时长：\(String(describing: player?.currentTime().seconds))")
         
         do {
             if (self.repeatMode == 1) {
@@ -1068,10 +1060,6 @@ public class BilisoundPlayerModule: Module {
                     "message": "Failed to jump to track: \(error.localizedDescription)",
                 ])
         }
-    }
-
-    @objc private func handlePlayerItemDidPlayToEndTime(notification: Notification) {
-        print("播放结束 (handlePlayerItemDidPlayToEndTime)，当前索引：\(currentIndex)，总数：\(playerItems.count)")
     }
 
     @objc private func handlePlayerItemError(notification: Notification) {
