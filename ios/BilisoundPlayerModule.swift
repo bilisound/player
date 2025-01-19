@@ -133,29 +133,10 @@ public class BilisoundPlayerModule: Module {
 
         AsyncFunction("jump") { (to: Int, promise: Promise) in
             do {
-                guard self.player != nil else {
-                    throw NSError(
-                        domain: "BilisoundPlayer", code: -1,
-                        userInfo: [NSLocalizedDescriptionKey: "Player is not initialized"])
-                }
-
-                // Check if the target index is valid
-                guard to >= 0 && to < self.playerItems.count else {
-                    throw NSError(
-                        domain: "BilisoundPlayer", code: -1,
-                        userInfo: [NSLocalizedDescriptionKey: "Invalid track index"])
-                }
-
-                // Update current index
-                self.currentIndex = to
-
-                // Update player queue starting from the target index
-                self.updatePlayerQueue()
-                self.player?.seek(to: .zero)
+                try self.jumpToTrack(at: to)
                 promise.resolve()
             } catch {
-                promise.reject(
-                    "PLAYER_ERROR", "Failed to jump to track: \(error.localizedDescription)")
+                promise.reject("PLAYER_ERROR", "Failed to jump to track: \(error.localizedDescription)")
             }
         }
 
@@ -645,13 +626,46 @@ public class BilisoundPlayerModule: Module {
         self.playerItems.append(contentsOf: items)
 
         // If player is not playing anything, start from the beginning
-        if self.player?.currentItem == nil {
-            print("播放器为空，从头开始播放")
-            self.currentIndex = 0
-            self.updatePlayerQueue()
+        if let player = self.player, player.items().isEmpty {
+            items.forEach { player.insert($0, after: nil) }
+        }
+    }
+
+    private func jumpToTrack(at index: Int) throws {
+        guard self.player != nil else {
+            throw NSError(
+                domain: "BilisoundPlayer", code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "Player is not initialized"])
         }
 
-        // Fire playlist change event
+        // Check if the target index is valid
+        guard index >= 0 && index < self.playerItems.count else {
+            throw NSError(
+                domain: "BilisoundPlayer", code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "Invalid track index"])
+        }
+
+        // Update current index
+        self.currentIndex = index
+
+        // Update player queue starting from the target index
+        self.updatePlayerQueue()
+        self.player?.seek(to: .zero)
+    }
+
+    private func updatePlayerQueue() {
+        guard let player = player else { return }
+
+        // Remove all items
+        while player.items().count > 0 {
+            player.remove(player.items().last!)
+        }
+
+        // Add all items from current index
+        for item in playerItems[currentIndex...] {
+            player.insert(item, after: player.items().last)
+        }
+        
         self.firePlaylistChangeEvent()
     }
 
@@ -1012,15 +1026,40 @@ public class BilisoundPlayerModule: Module {
 
     @objc private func playerItemDidReachEnd(notification: Notification) {
         print("播放结束，当前索引：\(currentIndex)，总数：\(playerItems.count)")
+        
+        do {
+            if (self.repeatMode == 1) {
+                print("执行单曲循环")
+                try jumpToTrack(at: currentIndex)
+                return
+            }
 
-        // Check if this is the last item in our queue
-        if currentIndex >= playerItems.count - 1 {
-            print("已到达播放列表末尾，清理播放状态")
+            // Check if this is the last item in our queue
+            if currentIndex >= playerItems.count - 1 {
+                if (self.repeatMode == 2) {
+                    print("已到达播放列表末尾，跳转回第一首")
+                    try jumpToTrack(at: 0)
+                } else {
+                    print("已到达播放列表末尾，清理播放状态")
+                    restoreCurrent()
+                }
+            } else {
+                // If not the last item, advance to next item
+                print("继续播放下一首")
+                skipToNext()
+            }
+        } catch {
+            print("播放跳转失败：\(error.localizedDescription)")
+            // If jump fails, restore to initial state
             restoreCurrent()
-        } else {
-            // If not the last item, advance to next item
-            print("继续播放下一首")
-            skipToNext()
+            
+            // Send error event
+            sendEvent(
+                "onPlaybackError",
+                [
+                    "type": "ERROR_GENERIC",
+                    "message": "Failed to jump to track: \(error.localizedDescription)",
+                ])
         }
     }
 
@@ -1187,20 +1226,6 @@ public class BilisoundPlayerModule: Module {
                 [
                     "tracks": jsonString
                 ])
-        }
-    }
-
-    private func updatePlayerQueue() {
-        guard let player = player else { return }
-
-        // Remove all items
-        while player.items().count > 0 {
-            player.remove(player.items().last!)
-        }
-
-        // Add all items from current index
-        for item in playerItems[currentIndex...] {
-            player.insert(item, after: player.items().last)
         }
     }
 
