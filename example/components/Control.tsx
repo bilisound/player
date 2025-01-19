@@ -4,6 +4,7 @@ import { useEvents } from "bilisound-player/hooks/useEvents";
 import { useIsPlaying } from "bilisound-player/hooks/useIsPlaying";
 import { usePlaybackState } from "bilisound-player/hooks/usePlaybackState";
 import { useProgress } from "bilisound-player/hooks/useProgress";
+import { useRepeatMode } from "bilisound-player/hooks/useRepeatMode";
 import {
   Button,
   Platform,
@@ -91,6 +92,7 @@ export function Control() {
       <RealTimeProgress />
       <Text>{`Playback State: ${playbackState}`}</Text>
       <Text>{`Playing: ${isPlaying}`}</Text>
+      <Text>{`Repeating: ${useRepeatMode()}`}</Text>
       <Text>{`Current Track: ${JSON.stringify(currentTrack, null, 2)}`}</Text>
       <Button
         onPress={async () =>

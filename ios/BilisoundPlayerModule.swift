@@ -9,6 +9,7 @@ public class BilisoundPlayerModule: Module {
     private var currentIndex: Int = 0
     private var timeObserverToken: Any?
     private var artworkCache: [String: MPMediaItemArtwork] = [:]
+    private var repeatMode: Int = 0  // 0: OFF, 1: ONE, 2: ALL
 
     // Playback states
     private let STATE_IDLE = "STATE_IDLE"
@@ -47,7 +48,8 @@ public class BilisoundPlayerModule: Module {
             "onTrackChange",
             "onIsPlayingChange",
             "onDownloadUpdate",
-            "onMediaItemTransition"
+            "onMediaItemTransition",
+            "onRepeatModeChange"
         )
 
         OnCreate {
@@ -608,6 +610,34 @@ public class BilisoundPlayerModule: Module {
                 promise.reject("PLAYER_ERROR", "Failed to set queue: \(error.localizedDescription)")
             }
         }
+
+        AsyncFunction("getRepeatMode") { (promise: Promise) in
+            promise.resolve(self.repeatMode)
+        }
+
+        AsyncFunction("setRepeatMode") { (mode: Int, promise: Promise) in
+            do {
+                // Validate mode
+                guard mode >= 0 && mode <= 2 else {
+                    throw NSError(
+                        domain: "BilisoundPlayer",
+                        code: -1,
+                        userInfo: [NSLocalizedDescriptionKey: "Invalid repeat mode"]
+                    )
+                }
+
+                self.repeatMode = mode
+
+                // Emit event
+                self.sendEvent("onRepeatModeChange", [
+                    "repeatMode": mode
+                ])
+
+                promise.resolve()
+            } catch {
+                promise.reject("SET_REPEAT_MODE_ERROR", "Failed to set repeat mode: \(error.localizedDescription)")
+            }
+        }
     }
 
     private func addTracksToPlayer(_ items: [AVPlayerItem]) {
@@ -756,6 +786,14 @@ public class BilisoundPlayerModule: Module {
 
         // Add observers for player state changes
         setupPlayerObservers()
+
+        // Add observer for track completion
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handlePlayerItemDidPlayToEndTime),
+            name: .AVPlayerItemDidPlayToEndTime,
+            object: nil
+        )
 
         // Add observer for playback errors
         NotificationCenter.default.addObserver(
@@ -986,6 +1024,87 @@ public class BilisoundPlayerModule: Module {
         }
     }
 
+    @objc private func handlePlayerItemDidPlayToEndTime(notification: Notification) {
+        guard let playerItem = notification.object as? AVPlayerItem,
+            let player = self.player else {
+            return
+        }
+
+        switch repeatMode {
+        case 1:  // ONE
+            // For single track repeat, seek back to start and play again
+            playerItem.seek(to: .zero) { [weak self] _ in
+                self?.player?.play()
+            }
+        case 2:  // ALL
+            // For playlist repeat, if we're at the last track, go back to first
+            if currentIndex == playerItems.count - 1 {
+                if let firstItem = playerItems.first {
+                    player.removeAllItems()
+                    player.replaceCurrentItem(with: firstItem)
+                    playerItems.forEach { player.insert($0, after: nil) }
+                    player.play()
+                }
+            }
+        default:  // OFF
+            // Do nothing special, let normal playback end
+            break
+        }
+    }
+
+    @objc private func handlePlayerItemError(notification: Notification) {
+        guard let playerItem = notification.object as? AVPlayerItem,
+            let error = playerItem.error as NSError?
+        else {
+            return
+        }
+
+        var errorType = "ERROR_GENERIC"
+        var message = error.localizedDescription
+
+        // Check for network-related errors
+        if error.domain == NSURLErrorDomain {
+            switch error.code {
+            case NSURLErrorNotConnectedToInternet,
+                NSURLErrorNetworkConnectionLost,
+                NSURLErrorTimedOut:
+                errorType = "ERROR_NETWORK_FAILURE"
+            case NSURLErrorBadServerResponse,
+                NSURLErrorBadURL:
+                errorType = "ERROR_BAD_HTTP_STATUS_CODE"
+            default:
+                errorType = "ERROR_NETWORK_FAILURE"
+            }
+        }
+
+        print("捕获播放错误：\(message)")
+
+        // Send error event to RN
+        sendEvent(
+            "onPlaybackError",
+            [
+                "type": errorType,
+                "message": message,
+            ])
+    }
+
+    @objc private func handlePlayerItemStatusChange(notification: Notification) {
+        guard let playerItem = notification.object as? AVPlayerItem,
+            let errorLog = playerItem.errorLog(),
+            let lastEvent = errorLog.events.last
+        else {
+            return
+        }
+
+        // Send error event to RN
+        sendEvent(
+            "onPlaybackError",
+            [
+                "type": "ERROR_GENERIC",
+                "message": lastEvent.errorComment ?? "Unknown playback error",
+            ])
+    }
+
     private struct AssociatedKeys {
         static var metadata = "com.bilisound.player.metadata"
     }
@@ -1132,59 +1251,6 @@ public class BilisoundPlayerModule: Module {
         player?.pause()
 
         return true
-    }
-
-    @objc private func handlePlayerItemError(notification: Notification) {
-        guard let playerItem = notification.object as? AVPlayerItem,
-            let error = playerItem.error as NSError?
-        else {
-            return
-        }
-
-        var errorType = "ERROR_GENERIC"
-        var message = error.localizedDescription
-
-        // Check for network-related errors
-        if error.domain == NSURLErrorDomain {
-            switch error.code {
-            case NSURLErrorNotConnectedToInternet,
-                NSURLErrorNetworkConnectionLost,
-                NSURLErrorTimedOut:
-                errorType = "ERROR_NETWORK_FAILURE"
-            case NSURLErrorBadServerResponse,
-                NSURLErrorBadURL:
-                errorType = "ERROR_BAD_HTTP_STATUS_CODE"
-            default:
-                errorType = "ERROR_NETWORK_FAILURE"
-            }
-        }
-
-        print("捕获播放错误：\(message)")
-
-        // Send error event to RN
-        sendEvent(
-            "onPlaybackError",
-            [
-                "type": errorType,
-                "message": message,
-            ])
-    }
-
-    @objc private func handlePlayerItemStatusChange(notification: Notification) {
-        guard let playerItem = notification.object as? AVPlayerItem,
-            let errorLog = playerItem.errorLog(),
-            let lastEvent = errorLog.events.last
-        else {
-            return
-        }
-
-        // Send error event to RN
-        sendEvent(
-            "onPlaybackError",
-            [
-                "type": "ERROR_GENERIC",
-                "message": lastEvent.errorComment ?? "Unknown playback error",
-            ])
     }
 }
 
