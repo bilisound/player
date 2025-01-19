@@ -16,9 +16,9 @@ setDefaultHeaders({
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
 });
 
-registerBackgroundEventListener((data) => {
+/*registerBackgroundEventListener((data) => {
   console.log(JSON.stringify(data, null, 2));
-});
+});*/
 
 export default function App() {
   const [page, setPage] = useState<Pages>("control");

@@ -1071,31 +1071,7 @@ public class BilisoundPlayerModule: Module {
     }
 
     @objc private func handlePlayerItemDidPlayToEndTime(notification: Notification) {
-        guard let playerItem = notification.object as? AVPlayerItem,
-            let player = self.player else {
-            return
-        }
-
-        switch repeatMode {
-        case 1:  // ONE
-            // For single track repeat, seek back to start and play again
-            playerItem.seek(to: .zero) { [weak self] _ in
-                self?.player?.play()
-            }
-        case 2:  // ALL
-            // For playlist repeat, if we're at the last track, go back to first
-            if currentIndex == playerItems.count - 1 {
-                if let firstItem = playerItems.first {
-                    player.removeAllItems()
-                    player.replaceCurrentItem(with: firstItem)
-                    playerItems.forEach { player.insert($0, after: nil) }
-                    player.play()
-                }
-            }
-        default:  // OFF
-            // Do nothing special, let normal playback end
-            break
-        }
+        print("播放结束 (handlePlayerItemDidPlayToEndTime)，当前索引：\(currentIndex)，总数：\(playerItems.count)")
     }
 
     @objc private func handlePlayerItemError(notification: Notification) {
