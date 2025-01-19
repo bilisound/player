@@ -49,7 +49,7 @@ const val EVENT_PLAYBACK_RESUME = "onPlaybackResume"
 /**
  * 循环状态变更
  */
-const val EVENT_LOOP_MODE_CHANGE = "onLoopModeChange"
+const val EVENT_LOOP_MODE_CHANGE = "onRepeatModeChange"
 
 // ============================================================================
 // 播放状态

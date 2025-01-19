@@ -611,7 +611,7 @@ public class BilisoundPlayerModule: Module {
 
                 // Emit event
                 self.sendEvent("onRepeatModeChange", [
-                    "repeatMode": mode
+                    "mode": mode
                 ])
 
                 promise.resolve()

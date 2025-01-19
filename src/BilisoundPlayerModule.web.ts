@@ -402,7 +402,7 @@ class BilisoundPlayerModuleWeb
 
   async setRepeatMode(mode: number): Promise<void> {
     this.repeatMode = mode;
-    this.emit("onRepeatModeChange", { repeatMode: mode });
+    this.emit("onRepeatModeChange", { mode });
   }
 }
 

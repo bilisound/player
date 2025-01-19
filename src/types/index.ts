@@ -148,6 +148,10 @@ export type DownloadUpdateEvent =
       paused: boolean;
     };
 
+export interface RepeatModeChangeEvent {
+  mode: RepeatMode;
+}
+
 export interface EventList {
   onPlaybackStateChange: PlaybackStateChangeEvent;
   onPlaybackError: PlaybackErrorEvent;
@@ -155,6 +159,7 @@ export interface EventList {
   onTrackChange: null;
   onIsPlayingChange: IsPlayingChangeEvent;
   onDownloadUpdate: DownloadUpdateEvent;
+  onRepeatModeChange: RepeatModeChangeEvent;
   [key: string]: any;
 }
 
@@ -165,6 +170,7 @@ export interface EventListFunc {
   onTrackChange: (params: null) => void;
   onIsPlayingChange: (params: IsPlayingChangeEvent) => void;
   onDownloadUpdate: (params: DownloadUpdateEvent) => void;
+  onRepeatModeChange: (params: RepeatModeChangeEvent) => void;
   [key: string]: any;
 }
 
