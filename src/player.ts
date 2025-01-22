@@ -275,7 +275,10 @@ export function setQueue(
   beginIndex = 0,
 ): Promise<void> {
   if (Platform.OS === "web") {
-    return BilisoundPlayerModule.setQueue(trackDatas, beginIndex);
+    return BilisoundPlayerModule.setQueue(
+      structuredClone(trackDatas),
+      beginIndex,
+    );
   }
 
   const processedData: TrackDataInternal[] = [];
