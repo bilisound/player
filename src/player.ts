@@ -154,9 +154,12 @@ export function setRepeatMode(mode: RepeatMode): Promise<void> {
 export function addTrack(trackData: TrackData, index?: number): Promise<void> {
   if (Platform.OS === "web") {
     if (typeof index === "number") {
-      return BilisoundPlayerModule.addTrackAt(trackData, index);
+      return BilisoundPlayerModule.addTrackAt(
+        structuredClone(trackData),
+        index,
+      );
     }
-    return BilisoundPlayerModule.addTrack(trackData);
+    return BilisoundPlayerModule.addTrack(structuredClone(trackData));
   }
 
   const builtTrackData = toTrackDataInternal(trackData);
@@ -180,9 +183,12 @@ export function addTracks(
 ): Promise<void> {
   if (Platform.OS === "web") {
     if (typeof index === "number") {
-      return BilisoundPlayerModule.addTracksAt(trackDatas, index);
+      return BilisoundPlayerModule.addTracksAt(
+        structuredClone(trackDatas),
+        index,
+      );
     }
-    return BilisoundPlayerModule.addTracks(trackDatas);
+    return BilisoundPlayerModule.addTracks(structuredClone(trackDatas));
   }
 
   const processedData: TrackDataInternal[] = [];
