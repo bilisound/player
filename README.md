@@ -39,21 +39,21 @@ No additional configuration required for Android.
 ## Basic Usage
 
 ```typescript
-import { BilisoundPlayer } from '@bilisound/player';
+import * as Player from '@bilisound/player';
 
 // Play a track
-await BilisoundPlayer.play();
+await Player.play();
 
 // Pause playback
-await BilisoundPlayer.pause();
+await Player.pause();
 
 // Add a track to the playlist
-await BilisoundPlayer.addTrack({
+await Player.addTrack({
   title: "Track Title",
   artist: "Artist Name",
-  url: "https://example.com/audio.mp3"
+  uri: "https://example.com/audio.mp3"
 });
 
 // Control playback speed
-await BilisoundPlayer.setSpeed(1.5, true); // 1.5x speed with pitch retention
+await Player.setSpeed(1.5, true); // 1.5x speed with pitch retention
 ```
