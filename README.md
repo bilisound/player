@@ -2,6 +2,8 @@
 
 A comprehensive audio player Expo module designed for audio content playback in React Native applications. This module provides a full-featured audio player implementation with support for playlist management and background playback.
 
+It's exclusively designed for use with [Bilisound](https://bilisound.moe). Although this library does not contain any business logic, it may not suitable for everyone's needs. For a more versatile audio playback solution, you may want to consider [React Native Track Player](https://rntp.dev/).
+
 ## Features
 
 - Complete audio playback control (play, pause, seek, next/previous track)
