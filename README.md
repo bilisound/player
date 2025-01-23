@@ -1,35 +1,59 @@
 # bilisound-player
 
-My new module
+A comprehensive audio player Expo module designed for audio content playback in React Native applications. This module provides a full-featured audio player implementation with support for playlist management and background playback.
 
-# API documentation
+## Features
 
-- [Documentation for the main branch](https://github.com/expo/expo/blob/main/docs/pages/versions/unversioned/sdk/bilisound-player.md)
-- [Documentation for the latest stable release](https://docs.expo.dev/versions/latest/sdk/bilisound-player/)
+- Complete audio playback control (play, pause, seek, next/previous track)
+- Playlist management with queue support
+- Repeat mode control
+- Playback speed adjustment with pitch control
+- Background playback support
+- Customizable network headers
+- Cross-platform support (iOS, Android, Web)
 
-# Installation in managed Expo projects
+## Installation
 
-For [managed](https://docs.expo.dev/archive/managed-vs-bare/) Expo projects, please follow the installation instructions in the [API documentation for the latest stable release](#api-documentation). If you follow the link and there is no documentation available then this library is not yet usable within managed projects &mdash; it is likely to be included in an upcoming Expo SDK release.
+### In managed Expo projects
 
-# Installation in bare React Native projects
+For [managed](https://docs.expo.dev/archive/managed-vs-bare/) Expo projects, please follow the installation instructions in the [API documentation for the latest stable release](#api-documentation).
+
+### In bare React Native projects
 
 For bare React Native projects, you must ensure that you have [installed and configured the `expo` package](https://docs.expo.dev/bare/installing-expo-modules/) before continuing.
 
-### Add the package to your npm dependencies
+#### Add the package to your npm dependencies
 
-```
-npm install bilisound-player
+```bash
+npm install @bilisound/player
 ```
 
-### Configure for iOS
+#### Configure for iOS
 
 Run `npx pod-install` after installing the npm package.
 
+#### Configure for Android
 
-### Configure for Android
+No additional configuration required for Android.
 
+## Basic Usage
 
+```typescript
+import { BilisoundPlayer } from '@bilisound/player';
 
-# Contributing
+// Play a track
+await BilisoundPlayer.play();
 
-Contributions are very welcome! Please refer to guidelines described in the [contributing guide]( https://github.com/expo/expo#contributing).
+// Pause playback
+await BilisoundPlayer.pause();
+
+// Add a track to the playlist
+await BilisoundPlayer.addTrack({
+  title: "Track Title",
+  artist: "Artist Name",
+  url: "https://example.com/audio.mp3"
+});
+
+// Control playback speed
+await BilisoundPlayer.setSpeed(1.5, true); // 1.5x speed with pitch retention
+```
