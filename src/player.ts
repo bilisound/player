@@ -373,6 +373,6 @@ export async function removeDownload(id: string): Promise<void> {
  * @param path 源文件路径
  * @param mimeType MIME 类型
  */
-export function saveFile(path: string, mimeType: string): Promise<void> {
-  return BilisoundPlayerModule.saveFile(path, mimeType);
+export function saveFile(path: string, mimeType: string, replaceName?: string | null): Promise<void> {
+  return BilisoundPlayerModule.saveFile(path, mimeType, replaceName || null);
 }

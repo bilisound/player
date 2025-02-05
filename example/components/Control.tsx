@@ -151,8 +151,8 @@ export function Control() {
         title="Replace index 1"
       />
       <View style={styles.row}>
-        <Button onPress={() => BilisoundPlayer.saveFile("/data/data/moe.bilisound.player.example/files/test.m4a", "audio/mp4")} title="Save" />
-        <Button onPress={() => BilisoundPlayer.saveFile("/data/data/moe.bilisound.player.example/files/test2.m4a", "audio/mp4")} title="Save (Error)" />
+        <Button onPress={() => BilisoundPlayer.saveFile("/data/data/moe.bilisound.player.example/files/test.m4a", "audio/mp4", "测试.m4a")} title="Save" />
+        <Button onPress={() => BilisoundPlayer.saveFile("/data/data/moe.bilisound.player.example/files/test2.m4a", "audio/mp4", "test2.m4a")} title="Save (Error)" />
       </View>
       <View style={styles.row}>
         <Button onPress={() => BilisoundPlayer.prev()} title="Prev" />

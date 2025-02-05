@@ -404,6 +404,8 @@ class BilisoundPlayerModuleWeb
     this.repeatMode = mode;
     this.emit("onRepeatModeChange", { mode });
   }
+
+  async saveFile(path: string, mimeType: string, replaceName?: string | null) {}
 }
 
 export const BilisoundPlayerModule = registerWebModule(

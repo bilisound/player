@@ -257,33 +257,6 @@ class BilisoundPlayerModule : Module() {
             }
         }
 
-        AsyncFunction("saveFile") { path: String, mimeType: String, promise: Promise ->
-            mainHandler.post {
-                try {
-                    val reactContext = context as ReactContext
-                    val activity = reactContext.currentActivity ?: throw Exception("Activity is not available")
-                    val sourceFile = File(path)
-                    if (!sourceFile.exists()) {
-                        throw Exception("Source file does not exist")
-                    }
-
-                    val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
-                        addCategory(Intent.CATEGORY_OPENABLE)
-                        type = mimeType
-                        putExtra(Intent.EXTRA_TITLE, sourceFile.name)
-                    }
-
-                    activity.startActivityForResult(intent, 43)
-
-                    // Store the promise and source file path for later use in onActivityResult
-                    pendingSaveFilePromise = promise
-                    pendingSaveFilePath = path
-                } catch (e: Exception) {
-                    promise.reject("SAVE_FILE_ERROR", "无法保存文件 (${e.message})", e)
-                }
-            }
-        }
-
         AsyncFunction("play") { promise: Promise ->
             mainHandler.post {
                 try {
@@ -872,6 +845,37 @@ class BilisoundPlayerModule : Module() {
                     promise.resolve()
                 } catch (e: Exception) {
                     promise.reject("DOWNLOADER_ERROR", "无法移除所请求的下载任务：${e.message}", e)
+                }
+            }
+        }
+
+        AsyncFunction("saveFile") { path: String, mimeType: String, replaceName: String?, promise: Promise ->
+            mainHandler.post {
+                try {
+                    val reactContext = context as ReactContext
+                    val activity = reactContext.currentActivity ?: throw Exception("Activity is not available")
+                    val sourceFile = File(path)
+                    if (!sourceFile.exists()) {
+                        throw Exception("Source file does not exist")
+                    }
+
+                    val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+                        addCategory(Intent.CATEGORY_OPENABLE)
+                        type = mimeType
+                        if (replaceName == null || replaceName == "") {
+                            putExtra(Intent.EXTRA_TITLE, sourceFile.name)
+                        } else {
+                            putExtra(Intent.EXTRA_TITLE, replaceName)
+                        }
+                    }
+
+                    activity.startActivityForResult(intent, 43)
+
+                    // Store the promise and source file path for later use in onActivityResult
+                    pendingSaveFilePromise = promise
+                    pendingSaveFilePath = path
+                } catch (e: Exception) {
+                    promise.reject("SAVE_FILE_ERROR", "无法保存文件 (${e.message})", e)
                 }
             }
         }
