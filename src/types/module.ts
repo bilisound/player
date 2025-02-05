@@ -53,4 +53,7 @@ export interface BilisoundPlayerModuleInterface {
   pauseAllDownloads(): Promise<void>;
   resumeAllDownloads(): Promise<void>;
   removeDownload(id: string): Promise<void>;
+
+  // 文件操作相关
+  saveFile(path: string, mimeType: string): Promise<void>;
 }

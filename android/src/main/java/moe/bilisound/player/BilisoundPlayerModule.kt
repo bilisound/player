@@ -1,7 +1,9 @@
 @file:UnstableApi package moe.bilisound.player
 
+import android.app.Activity
 import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
@@ -29,6 +31,8 @@ import androidx.media3.exoplayer.offline.DownloadService
 import androidx.media3.exoplayer.scheduler.Requirements
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
+import com.facebook.react.bridge.ActivityEventListener
+import com.facebook.react.bridge.ReactContext
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import expo.modules.kotlin.Promise
@@ -39,10 +43,14 @@ import expo.modules.kotlin.types.Enumerable
 import kotlinx.serialization.json.Json
 import moe.bilisound.player.services.BilisoundDownloadService
 import moe.bilisound.player.services.BilisoundPlaybackService
+import org.jetbrains.annotations.Async
 import org.json.JSONArray
 import org.json.JSONObject
-import java.util.concurrent.Executor
 import java.io.File
+import java.io.FileInputStream
+import java.io.FileNotFoundException
+import java.util.concurrent.Executor
+
 
 const val TAG = "BilisoundPlayerModule"
 
@@ -152,6 +160,8 @@ class BilisoundPlayerModule : Module() {
     private val context: Context
         get() = appContext.reactContext ?: throw Exceptions.ReactContextLost()
     private var controllerFuture: ListenableFuture<MediaController>? = null
+    private var pendingSaveFilePromise: Promise? = null
+    private var pendingSaveFilePath: String? = null
 
     private fun getController(): MediaController {
         val controller = controllerFuture?.get() ?: throw Exception("Controller not ready")
@@ -210,6 +220,68 @@ class BilisoundPlayerModule : Module() {
 
         OnStopObserving {
             Log.d(TAG, "definition: 执行监听器停止操作！")
+        }
+
+        OnActivityResult { _, (requestCode, resultCode, data) ->
+            if (requestCode == 43) {
+                val promise = pendingSaveFilePromise
+                val sourcePath = pendingSaveFilePath
+
+                // Clear the pending promise and path
+                pendingSaveFilePromise = null
+                pendingSaveFilePath = null
+
+                if (promise == null || sourcePath == null) {
+                    return@OnActivityResult
+                }
+
+                if (resultCode != Activity.RESULT_OK || data?.data == null) {
+                    promise.reject("SAVE_FILE_ERROR", "用户取消了保存操作或发生错误", null)
+                    return@OnActivityResult
+                }
+
+                try {
+                    val sourceFile = File(sourcePath)
+                    val uri = data.data!!
+
+                    context.contentResolver.openOutputStream(uri)?.use { outputStream ->
+                        FileInputStream(sourceFile).use { inputStream ->
+                            inputStream.copyTo(outputStream)
+                        }
+                    } ?: throw FileNotFoundException("无法打开输出流")
+
+                    promise.resolve(null)
+                } catch (e: Exception) {
+                    promise.reject("SAVE_FILE_ERROR", "保存文件时发生错误 (${e.message})", e)
+                }
+            }
+        }
+
+        AsyncFunction("saveFile") { path: String, mimeType: String, promise: Promise ->
+            mainHandler.post {
+                try {
+                    val reactContext = context as ReactContext
+                    val activity = reactContext.currentActivity ?: throw Exception("Activity is not available")
+                    val sourceFile = File(path)
+                    if (!sourceFile.exists()) {
+                        throw Exception("Source file does not exist")
+                    }
+
+                    val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+                        addCategory(Intent.CATEGORY_OPENABLE)
+                        type = mimeType
+                        putExtra(Intent.EXTRA_TITLE, sourceFile.name)
+                    }
+
+                    activity.startActivityForResult(intent, 43)
+
+                    // Store the promise and source file path for later use in onActivityResult
+                    pendingSaveFilePromise = promise
+                    pendingSaveFilePath = path
+                } catch (e: Exception) {
+                    promise.reject("SAVE_FILE_ERROR", "无法保存文件 (${e.message})", e)
+                }
+            }
         }
 
         AsyncFunction("play") { promise: Promise ->

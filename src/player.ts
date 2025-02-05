@@ -367,3 +367,12 @@ export async function resumeAllDownloads(): Promise<void> {
 export async function removeDownload(id: string): Promise<void> {
   return BilisoundPlayerModule.removeDownload(id);
 }
+
+/**
+ * 将文件保存到用户指定的位置
+ * @param path 源文件路径
+ * @param mimeType MIME 类型
+ */
+export function saveFile(path: string, mimeType: string): Promise<void> {
+  return BilisoundPlayerModule.saveFile(path, mimeType);
+}
