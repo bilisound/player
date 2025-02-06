@@ -619,6 +619,15 @@ public class BilisoundPlayerModule: Module {
                 promise.reject("SET_REPEAT_MODE_ERROR", "Failed to set repeat mode: \(error.localizedDescription)")
             }
         }
+
+        AsyncFunction("saveFile") { (path: String, mimeType: String, replaceName: String?, promise: Promise) in
+            do {
+                // todo
+                promise.resolve()
+            } catch {
+                promise.reject("SAVE_FILE_ERROR", "Failed: \(error.localizedDescription)")
+            }
+        }
     }
 
     private func addTracksToPlayer(_ items: [AVPlayerItem]) {
