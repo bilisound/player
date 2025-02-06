@@ -2,6 +2,9 @@
 
 package moe.bilisound.player.services
 
+import android.app.PendingIntent
+import android.app.PendingIntent.FLAG_IMMUTABLE
+import android.app.PendingIntent.FLAG_UPDATE_CURRENT
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -74,8 +77,19 @@ class BilisoundPlaybackService : MediaSessionService() {
             .setMediaSourceFactory(mediaSourceFactory)
             .build()
 
-        mediaSession = MediaSession.Builder(this, player)
-            .setId("moe.bilisound.player").setCallback(PlaybackCallback()).build()
+        // 设置 sessionActivity
+        val intent = packageManager.getLaunchIntentForPackage(packageName)
+        intent?.putExtra("DESTINATION", "player")
+        val pendingIntent = PendingIntent.getActivity(this, 0, intent, FLAG_IMMUTABLE or FLAG_UPDATE_CURRENT)
+
+
+        mediaSession = MediaSession
+            .Builder(this, player)
+            .setId("moe.bilisound.player")
+            .setCallback(PlaybackCallback())
+            .setSessionActivity(pendingIntent)
+            .build()
+
         player.clearMediaItems()
         player.prepare()
         player.addListener(playerListener)
