@@ -73,8 +73,8 @@ class BilisoundTaskService: HeadlessJsTaskService() {
         return super.onHeadlessJsTaskFinish(taskId)
     }
 
-    override fun getTaskConfig(intent: Intent): HeadlessJsTaskConfig? {
-        return intent.extras?.let {
+    override fun getTaskConfig(intent: Intent?): HeadlessJsTaskConfig? {
+        return intent?.extras?.let {
             HeadlessJsTaskConfig(
                 "BilisoundPlayerTask",
                 Arguments.fromBundle(it),

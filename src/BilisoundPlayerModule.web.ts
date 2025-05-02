@@ -410,4 +410,5 @@ class BilisoundPlayerModuleWeb
 
 export const BilisoundPlayerModule = registerWebModule(
   BilisoundPlayerModuleWeb,
+  "BilisoundPlayerModule"
 );
