@@ -1,5 +1,5 @@
-import { setDefaultHeaders } from "bilisound-player";
-import { registerBackgroundEventListener } from "bilisound-player/events";
+import { setDefaultHeaders } from "@bilisound/player";
+import { registerBackgroundEventListener } from "@bilisound/player/events";
 import { useState } from "react";
 import { Button, ScrollView, StyleSheet, Text, View } from "react-native";
 

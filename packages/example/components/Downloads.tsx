@@ -2,10 +2,10 @@ import {
   pauseDownload,
   removeDownload,
   resumeDownload,
-} from "bilisound-player";
-import * as BilisoundPlayer from "bilisound-player";
-import { useDownloadTasks } from "bilisound-player/hooks/useDownloadTasks";
-import { DownloadState } from "bilisound-player/types";
+} from "@bilisound/player";
+import * as BilisoundPlayer from "@bilisound/player";
+import { useDownloadTasks } from "@bilisound/player/hooks/useDownloadTasks";
+import { DownloadState } from "@bilisound/player/types";
 import { View, Text, StyleSheet, Button, ToastAndroid } from "react-native";
 
 import { getBilisoundResourceUrl, getVideoUrl } from "~/api/bilisound";

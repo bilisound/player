@@ -3,8 +3,8 @@
   "compilerOptions": {
     "strict": true,
     "paths": {
-      "bilisound-player": ["../src/index"],
-      "bilisound-player/*": ["../src/*"],
+      "@bilisound/player": ["../player/src/index"],
+      "@bilisound/player/*": ["../player/src/*"],
       "~/*": ["./*"]
     }
   }

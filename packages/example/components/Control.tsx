@@ -1,10 +1,10 @@
-import * as BilisoundPlayer from "bilisound-player";
-import { useCurrentTrack } from "bilisound-player/hooks/useCurrentTrack";
-import { useEvents } from "bilisound-player/hooks/useEvents";
-import { useIsPlaying } from "bilisound-player/hooks/useIsPlaying";
-import { usePlaybackState } from "bilisound-player/hooks/usePlaybackState";
-import { useProgress } from "bilisound-player/hooks/useProgress";
-import { useRepeatMode } from "bilisound-player/hooks/useRepeatMode";
+import * as BilisoundPlayer from "@bilisound/player";
+import { useCurrentTrack } from "@bilisound/player/hooks/useCurrentTrack";
+import { useEvents } from "@bilisound/player/hooks/useEvents";
+import { useIsPlaying } from "@bilisound/player/hooks/useIsPlaying";
+import { usePlaybackState } from "@bilisound/player/hooks/usePlaybackState";
+import { useProgress } from "@bilisound/player/hooks/useProgress";
+import { useRepeatMode } from "@bilisound/player/hooks/useRepeatMode";
 import {
   Button,
   Platform,

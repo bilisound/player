@@ -1,5 +1,5 @@
-import { jump } from "bilisound-player";
-import { useQueue } from "bilisound-player/hooks/useQueue";
+import { jump } from "@bilisound/player";
+import { useQueue } from "@bilisound/player/hooks/useQueue";
 import { View, Text, Pressable } from "react-native";
 
 export function Playlist() {
